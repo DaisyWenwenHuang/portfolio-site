@@ -1,6 +1,6 @@
 # Daisy Huang Portfolio Website 🎃
 
-This is a simple personal portfolio website with a Halloween puzzle invite, built using **HTML, CSS, and PyScript (Python in the browser)**.
+This is a simple personal portfolio website to share fun data science porjects and fun mini puzzle games I like. Built using **HTML, CSS, and PyScript (Python in the browser)**.
 
 ---
 
