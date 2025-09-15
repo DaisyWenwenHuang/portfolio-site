@@ -1,0 +1,103 @@
+body {
+  font-family: 'Inter', sans-serif;
+  background: #111;
+  color: #eee;
+  margin: 0;
+}
+
+.container {
+  width: 90%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.site-header {
+  background: #222;
+  padding: 1rem;
+  border-bottom: 2px solid orange;
+}
+
+.title {
+  margin: 0;
+  color: orange;
+}
+
+.nav {
+  margin-top: 0.5rem;
+}
+.nav a {
+  margin-right: 1rem;
+  color: #eee;
+  text-decoration: none;
+}
+.nav a:hover {
+  text-decoration: underline;
+  color: orange;
+}
+
+.section {
+  padding: 2rem 0;
+}
+
+.section-alt {
+  background: #1a1a1a;
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.card {
+  background: #222;
+  padding: 1rem;
+  border: 1px solid #444;
+  border-radius: 6px;
+}
+.card h3 {
+  margin-top: 0;
+  color: orange;
+}
+
+.tagrow {
+  margin-top: 0.5rem;
+}
+.tag {
+  display: inline-block;
+  background: orange;
+  color: #111;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  margin-right: 0.3rem;
+  font-size: 0.8rem;
+}
+
+#puzzle-box {
+  margin: 2rem auto;
+  padding: 1rem;
+  max-width: 400px;
+  border: 2px solid orange;
+  border-radius: 8px;
+  background: #222;
+}
+input {
+  padding: 0.5rem;
+  margin: 0.5rem;
+}
+button {
+  padding: 0.5rem 1rem;
+  background: orange;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+button:hover {
+  background: darkorange;
+}
+
+.footer {
+  background: #222;
+  text-align: center;
+  padding: 1rem;
+  border-top: 2px solid orange;
+}

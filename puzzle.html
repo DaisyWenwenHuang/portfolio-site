@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Halloween Puzzle 🎃</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- PyScript -->
+  <link rel="stylesheet" href="https://pyscript.net/releases/2024.11.1/pyscript.css" />
+  <script defer src="https://pyscript.net/releases/2024.11.1/pyscript.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <h1 class="title">Halloween Puzzle 🎃</h1>
+      <nav class="nav">
+        <a href="index.html">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="section container">
+    <h2>Unscramble the Word</h2>
+    <p>Solve the puzzle to reveal the Halloween party invitation!</p>
+
+    <div id="puzzle-box">
+      <p><strong>Scrambled word:</strong> <span id="scrambled">NIKPUM</span></p>
+      <input id="guess" placeholder="Your guess..." />
+      <button id="check-btn">Check</button>
+    </div>
+
+    <div id="result"></div>
+
+    <py-script>
+from js import document
+
+secret_word = "NIKPUM"
+correct_answer = "PUMPKIN"
+
+def check_guess(event=None):
+    guess = document.getElementById("guess").value.strip().upper()
+    result_el = document.getElementById("result")
+    if guess == correct_answer:
+        result_el.innerHTML = (
+            "<h2>🎉 Correct! Here’s your invitation:</h2>"
+            "<p><strong>Date:</strong> Oct 31, 8 PM</p>"
+            "<p><strong>Location:</strong> 123 Spooky Lane, Boulder</p>"
+            "<p>Costumes required! 🧙‍♀️🧛‍♂️</p>"
+        )
+    else:
+        result_el.innerHTML = "<p style='color:red;'>❌ Try again!</p>"
+
+btn = document.getElementById("check-btn")
+btn.addEventListener("click", check_guess)
+    </py-script>
+  </main>
+
+  <footer class="footer">
+    <p>© 2025 Daisy Huang</p>
+  </footer>
+</body>
+</html>
