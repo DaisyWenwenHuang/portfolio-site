@@ -1,61 +1,275 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Halloween Puzzle 🎃</title>
-  <link rel="stylesheet" href="style.css">
-  <!-- PyScript -->
-  <link rel="stylesheet" href="https://pyscript.net/releases/2024.11.1/pyscript.css" />
-  <script defer src="https://pyscript.net/releases/2024.11.1/pyscript.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>🎃 Halloween Image Puzzle</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Load PyScript -->
+    <!-- PyScript removed for static hosting (was printing code on Go Live) -->
+
+  <style>
+    body {
+      background: #fff;
+      color: #111;
+    }
+    .puzzle-container {
+      display: grid;
+      margin: 20px auto;
+      border: 2px solid #333;
+    }
+    .preview {
+      width: 160px;
+      height: 160px;
+      margin: 10px auto 0;
+      background-size: cover;
+      border: 2px solid #ccc;
+      border-radius: 6px;
+    }
+    .puzzle-area{
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      gap:24px;
+      margin-top: 8px;
+    }
+    @media (max-width: 800px){
+      .puzzle-area{flex-direction:column-reverse; align-items:center}
+      .preview{margin-top:8px}
+      .puzzle-container { transform: scale(0.95); }
+    }
+    .tile {
+      width: 200px;
+      height: 200px;
+      background-size: 600px 600px; /* full image size = size × tile size (3 × 200) */
+      background-repeat: no-repeat;
+      border: 1px solid #222;
+      cursor: pointer;
+    }
+    .empty {
+      background: #fff;
+      cursor: default;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
+    }
+    #invite {
+      margin-top: 20px;
+      text-align: center;
+      display: none;
+    }
+    #invite img {
+      max-width: 100%;
+      border: 3px solid #333;
+      border-radius: 10px;
+    }
+    #controls {
+      text-align: center;
+      margin-top: 15px;
+    }
+    button {
+      background: orange;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: darkorange;
+    }
+    input.invalid { border-color: #e44; box-shadow: 0 0 6px rgba(228,68,68,0.15); }
+  </style>
 </head>
 <body>
   <header class="site-header">
     <div class="container">
-      <h1 class="title">Halloween Puzzle 🎃</h1>
+      <h1 class="title">🎃 Halloween Image Puzzle</h1>
       <nav class="nav">
         <a href="index.html">Home</a>
+        <a href="projects.html">Projects</a>
+        <a href="blog.html">Blog</a>
       </nav>
     </div>
   </header>
 
   <main class="section container">
-    <h2>Unscramble the Word</h2>
-    <p>Solve the puzzle to reveal the Halloween party invitation!</p>
-
-    <div id="puzzle-box">
-      <p><strong>Scrambled word:</strong> <span id="scrambled">NIKPUM</span></p>
-      <input id="guess" placeholder="Your guess..." />
-      <button id="check-btn">Check</button>
+  <h2>Solve the puzzle to reveal your invitation</h2>
+  <div class="puzzle-area">
+    <div id="puzzle" class="puzzle-container"></div>
+    <div id="preview" class="preview" aria-hidden="true" style="background-image: url('other_files/puzzle_image_600.jpg')"></div>
+  </div>
+    <div id="controls">
+      <button id="reset-btn">🔄 Reset Puzzle</button>
+      <div style="display:inline-block; margin-left:12px; vertical-align:middle">
+        <input id="pass-input" placeholder="Enter pass" aria-label="pass input" style="padding:6px 8px; border-radius:4px; border:1px solid #ccc;" />
+        <button id="pass-btn" style="margin-left:6px;">Pass</button>
+        <span id="pass-msg" aria-live="polite" style="margin-left:8px; color:#e44; font-size:14px; min-width:120px; display:inline-block"></span>
+      </div>
     </div>
-
-    <div id="result"></div>
-
-    <py-script>
-from js import document
-
-secret_word = "NIKPUM"
-correct_answer = "PUMPKIN"
-
-def check_guess(event=None):
-    guess = document.getElementById("guess").value.strip().upper()
-    result_el = document.getElementById("result")
-    if guess == correct_answer:
-        result_el.innerHTML = (
-            "<h2>🎉 Correct! Here’s your invitation:</h2>"
-            "<p><strong>Date:</strong> Oct 31, 8 PM</p>"
-            "<p><strong>Location:</strong> 123 Spooky Lane, Boulder</p>"
-            "<p>Costumes required! 🧙‍♀️🧛‍♂️</p>"
-        )
-    else:
-        result_el.innerHTML = "<p style='color:red;'>❌ Try again!</p>"
-
-btn = document.getElementById("check-btn")
-btn.addEventListener("click", check_guess)
-    </py-script>
+    <div id="invite">
+      <h2>🎉 You solved it! Here’s your invitation:</h2>
+  <img src="other_files/Invite.jpg" alt="Halloween Invitation" />
+    </div>
   </main>
+    <script>
+    (function(){
+  const size = 3;
+  const tileSize = 200;
+  const imageUrl = 'other_files/puzzle_image_600.jpg';
+  let tiles = Array.from({length: size*size - 1}, (_,i) => i).concat([null]);
+
+      function isSolvable(seq){
+        let inv = 0;
+        const arr = seq.filter(x => x !== null);
+        for(let i=0;i<arr.length;i++){
+          for(let j=i+1;j<arr.length;j++){
+            if(arr[i] > arr[j]) inv++;
+          }
+        }
+        const emptyRow = Math.floor(seq.indexOf(null)/size);
+        return ((inv + emptyRow) % 2) === 0;
+      }
+
+      function shuffle(){
+        do{
+          for(let i=tiles.length-1;i>0;i--){
+            const j = Math.floor(Math.random()*(i+1));
+            [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+          }
+        }while(!isSolvable(tiles));
+      }
+
+      function render(){
+        const puzzle = document.getElementById('puzzle');
+        puzzle.style.gridTemplateColumns = `repeat(${size}, ${tileSize}px)`;
+        puzzle.style.gridTemplateRows = `repeat(${size}, ${tileSize}px)`;
+        puzzle.innerHTML = '';
+        tiles.forEach((val, i) => {
+          const div = document.createElement('div');
+          if(val === null){
+            div.className = 'tile empty';
+          } else {
+            div.className = 'tile';
+            const row = Math.floor(val / size);
+            const col = val % size;
+            div.style.backgroundImage = `url('${imageUrl}')`;
+            div.style.backgroundPosition = `-${col*tileSize}px -${row*tileSize}px`;
+            div.addEventListener('click', () => move(i));
+          }
+          puzzle.appendChild(div);
+        });
+      }
+
+      function move(idx){
+        const emptyIdx = tiles.indexOf(null);
+        const r1 = Math.floor(idx/size), c1 = idx%size;
+        const r2 = Math.floor(emptyIdx/size), c2 = emptyIdx%size;
+        if(Math.abs(r1-r2)+Math.abs(c1-c2) === 1){
+          [tiles[emptyIdx], tiles[idx]] = [tiles[idx], tiles[emptyIdx]];
+          render();
+          checkWin();
+        }
+      }
+
+      function checkWin(){
+        const win = Array.from({length: size*size-1}, (_,i)=>i).concat([null]);
+        if(tiles.every((v,i)=>v===win[i])){
+          playWinSound();
+          document.getElementById('invite').style.display = 'block';
+        }
+      }
+
+      function playWinSound(){
+        try{
+          const C = window.AudioContext || window.webkitAudioContext;
+          if(!C) return;
+          const ctx = new C();
+          const now = ctx.currentTime;
+
+          // Primary rising tone
+          const o1 = ctx.createOscillator();
+          const g1 = ctx.createGain();
+          o1.type = 'sine';
+          o1.frequency.setValueAtTime(660, now);
+          o1.frequency.exponentialRampToValueAtTime(1320, now + 0.28);
+          g1.gain.setValueAtTime(0.0001, now);
+          g1.gain.linearRampToValueAtTime(0.16, now + 0.02);
+          g1.gain.exponentialRampToValueAtTime(0.0001, now + 1.0);
+          o1.connect(g1);
+          g1.connect(ctx.destination);
+          o1.start(now);
+          o1.stop(now + 1.0);
+
+          // Second gentle tone
+          const o2 = ctx.createOscillator();
+          const g2 = ctx.createGain();
+          o2.type = 'triangle';
+          o2.frequency.setValueAtTime(880, now + 0.06);
+          o2.frequency.exponentialRampToValueAtTime(660, now + 0.5);
+          g2.gain.setValueAtTime(0.0001, now + 0.06);
+          g2.gain.linearRampToValueAtTime(0.12, now + 0.09);
+          g2.gain.exponentialRampToValueAtTime(0.0001, now + 0.9);
+          o2.connect(g2);
+          g2.connect(ctx.destination);
+          o2.start(now + 0.06);
+          o2.stop(now + 0.9);
+
+          // Close the AudioContext after tones finish to free resources
+          setTimeout(()=>{ try{ ctx.close(); }catch(e){} }, 1200);
+        }catch(e){
+          console.warn('Audio playback failed', e);
+        }
+      }
+
+      // Hook up reset button
+      const resetBtn = document.getElementById('reset-btn');
+      if(resetBtn){
+          resetBtn.addEventListener('click', () => {
+            shuffle();
+            render();
+            document.getElementById('invite').style.display = 'none';
+            if(passInput){ passInput.value = ''; }
+            const passMsg = document.getElementById('pass-msg');
+            if(passMsg){ passMsg.textContent = ''; }
+        });
+      }
+
+      // Pass button: allow bypass with secret word
+      const passInput = document.getElementById('pass-input');
+      const passBtn = document.getElementById('pass-btn');
+        function tryPass(){
+          const val = (passInput && passInput.value || '').trim().toLowerCase();
+          const passMsg = document.getElementById('pass-msg');
+          if(val === 'daisy'){
+            playWinSound();
+            document.getElementById('invite').style.display = 'block';
+            if(passMsg){ passMsg.textContent = ''; }
+          } else {
+            if(passMsg){ passMsg.textContent = 'Wrong password'; }
+            if(passInput){
+              passInput.classList.add('invalid');
+              setTimeout(()=> passInput && passInput.classList.remove('invalid'), 600);
+              setTimeout(()=> passMsg && (passMsg.textContent = ''), 1500);
+            }
+          }
+        }
+      if(passBtn){ passBtn.addEventListener('click', tryPass); }
+      if(passInput){
+        passInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ tryPass(); } });
+        // focus for convenience
+        passInput.focus();
+      }
+
+      // Initialize
+      shuffle();
+      render();
+    })();
+    </script>
 
   <footer class="footer">
     <p>© 2025 Daisy Huang</p>
   </footer>
+
+  <!-- Removed PyScript block: page now uses a pure JavaScript implementation -->
 </body>
 </html>
