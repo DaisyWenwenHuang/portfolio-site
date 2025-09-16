@@ -110,6 +110,23 @@
     <div id="invite">
       <h2>🎉 You solved it! Here’s your invitation:</h2>
   <img src="other_files/Invite.jpg" alt="Halloween Invitation" />
+    
+    <div id="rsvp" style="display:none; margin-top:16px;">
+      <h3>RSVP</h3>
+      <p>Please let us know your name and how many people will attend (including you).</p>
+      <form id="rsvp-form">
+        <div>
+          <label>Name: <input id="rsvp-name" required /></label>
+        </div>
+        <div style="margin-top:8px">
+          <label>Number of guests: <input id="rsvp-count" type="number" min="1" value="1" required style="width:80px; margin-left:8px" /></label>
+        </div>
+        <div style="margin-top:8px">
+          <button type="submit">Send RSVP</button>
+        </div>
+      </form>
+      <p id="rsvp-note" style="color:green; display:none;">RSVP prepared — your email client should open.</p>
+    </div>
     </div>
   </main>
     <script>
@@ -214,6 +231,13 @@
         if(tiles.every((v,i)=>v===win[i])){
           playWinSound();
           document.getElementById('invite').style.display = 'block';
+          const rsvpEl = document.getElementById('rsvp');
+          if(rsvpEl){
+            rsvpEl.style.display = 'block';
+            rsvpEl.scrollIntoView({behavior:'smooth', block:'center'});
+            const nameInput = document.getElementById('rsvp-name');
+            if(nameInput){ nameInput.focus(); }
+          }
         }
       }
 
@@ -266,6 +290,9 @@
             shuffle();
             render();
             document.getElementById('invite').style.display = 'none';
+            // hide RSVP when resetting
+            const rsvpEl = document.getElementById('rsvp');
+            if(rsvpEl){ rsvpEl.style.display = 'none'; }
             if(passInput){ passInput.value = ''; }
             const passMsg = document.getElementById('pass-msg');
             if(passMsg){ passMsg.textContent = ''; }
@@ -279,9 +306,16 @@
           const val = (passInput && passInput.value || '').trim().toLowerCase();
           const passMsg = document.getElementById('pass-msg');
           if(val === 'daisy'){
-            playWinSound();
-            document.getElementById('invite').style.display = 'block';
-            if(passMsg){ passMsg.textContent = ''; }
+              playWinSound();
+              document.getElementById('invite').style.display = 'block';
+              if(passMsg){ passMsg.textContent = ''; }
+              const rsvpEl = document.getElementById('rsvp');
+              if(rsvpEl){
+                rsvpEl.style.display = 'block';
+                rsvpEl.scrollIntoView({behavior:'smooth', block:'center'});
+                const nameInput = document.getElementById('rsvp-name');
+                if(nameInput){ nameInput.focus(); }
+              }
           } else {
             if(passMsg){ passMsg.textContent = 'Wrong password'; }
             if(passInput){
@@ -296,6 +330,24 @@
         passInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ tryPass(); } });
         // focus for convenience
         passInput.focus();
+      }
+
+      // RSVP handling (mailto fallback)
+  const hostEmail = 'daisy_huang1020@hotmail.com'; // real recipient email
+      const rsvpForm = document.getElementById('rsvp-form');
+      if(rsvpForm){
+        rsvpForm.addEventListener('submit', (e)=>{
+          e.preventDefault();
+          const name = document.getElementById('rsvp-name').value || '';
+          const count = document.getElementById('rsvp-count').value || '1';
+          const subject = encodeURIComponent('RSVP from ' + name);
+          const body = encodeURIComponent(`Name: ${name}%0ANumber of guests: ${count}`);
+          const mailto = `mailto:${hostEmail}?subject=${subject}&body=${body}`;
+          // Open user's email client
+          window.location.href = mailto;
+          const note = document.getElementById('rsvp-note');
+          if(note){ note.style.display = 'block'; }
+        });
       }
 
       // Initialize
