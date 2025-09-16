@@ -18,6 +18,7 @@
       display: grid;
       margin: 20px auto;
       border: 2px solid #333;
+      position: relative; /* for absolute-positioned animation clones */
     }
     .preview {
       width: 160px;
@@ -148,25 +149,62 @@
           const div = document.createElement('div');
           if(val === null){
             div.className = 'tile empty';
+            div.style.pointerEvents = 'none';
           } else {
             div.className = 'tile';
             const row = Math.floor(val / size);
             const col = val % size;
             div.style.backgroundImage = `url('${imageUrl}')`;
             div.style.backgroundPosition = `-${col*tileSize}px -${row*tileSize}px`;
+            div.style.transform = 'none';
             div.addEventListener('click', () => move(i));
           }
           puzzle.appendChild(div);
         });
       }
 
-      function move(idx){
+      let animating = false;
+
+      function animateTileMove(fromEl, toRect, duration=260){
+        return new Promise((resolve)=>{
+          const clone = fromEl.cloneNode(true);
+          const fromRect = fromEl.getBoundingClientRect();
+          const containerRect = document.getElementById('puzzle').getBoundingClientRect();
+          clone.style.position = 'absolute';
+          clone.style.left = (fromRect.left - containerRect.left) + 'px';
+          clone.style.top = (fromRect.top - containerRect.top) + 'px';
+          clone.style.margin = '0';
+          clone.style.transition = `transform ${duration}ms ease`;
+          clone.style.zIndex = 1000;
+          document.getElementById('puzzle').appendChild(clone);
+          const dx = (toRect.left - fromRect.left);
+          const dy = (toRect.top - fromRect.top);
+          requestAnimationFrame(()=>{
+            clone.style.transform = `translate(${dx}px, ${dy}px)`;
+          });
+          setTimeout(()=>{ try{ clone.remove(); }catch(e){}; resolve(); }, duration+20);
+        });
+      }
+
+      async function move(idx){
+        if(animating) return;
         const emptyIdx = tiles.indexOf(null);
         const r1 = Math.floor(idx/size), c1 = idx%size;
         const r2 = Math.floor(emptyIdx/size), c2 = emptyIdx%size;
         if(Math.abs(r1-r2)+Math.abs(c1-c2) === 1){
+          animating = true;
+          // find DOM elements for the tile and empty slot
+          const puzzleEl = document.getElementById('puzzle');
+          const children = Array.from(puzzleEl.children);
+          const fromEl = children[idx];
+          const toEl = children[emptyIdx];
+          const fromRect = fromEl.getBoundingClientRect();
+          const toRect = toEl.getBoundingClientRect();
+          await animateTileMove(fromEl, toRect);
+          // perform logical swap
           [tiles[emptyIdx], tiles[idx]] = [tiles[idx], tiles[emptyIdx]];
           render();
+          animating = false;
           checkWin();
         }
       }
