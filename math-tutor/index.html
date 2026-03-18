@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Math Tutor — Multiplication Tables</title>
+  <style>
+    /* ─── Reset & Base ─────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --pip-primary: #7c3aed;
+      --pip-secondary: #fbbf24;
+      --pip-bg: #ede9fe;
+      --sunny-primary: #ea580c;
+      --sunny-secondary: #facc15;
+      --sunny-bg: #fff7ed;
+      --zero-primary: #0284c7;
+      --zero-secondary: #38bdf8;
+      --zero-bg: #e0f2fe;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Comic Sans MS', Helvetica, sans-serif;
+      background: #fef3c7;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    /* ─── Screen Container ─────────────────────────── */
+    .screen {
+      display: none;
+      width: 100%;
+      max-width: 640px;
+      min-height: 90vh;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 24px 16px;
+      gap: 20px;
+    }
+    .screen.active { display: flex; }
+
+    h1 {
+      font-size: clamp(1.8rem, 5vw, 2.8rem);
+      text-align: center;
+      color: #1e1b4b;
+      line-height: 1.2;
+    }
+    .subtitle {
+      font-size: 1.1rem;
+      color: #4c1d95;
+      text-align: center;
+    }
+
+    /* ─── Avatar Picker ────────────────────────────── */
+    .avatar-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .avatar-card {
+      background: white;
+      border-radius: 24px;
+      padding: 20px 16px;
+      cursor: pointer;
+      border: 4px solid transparent;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      width: 170px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .avatar-card:hover {
+      transform: translateY(-4px) scale(1.03);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+    .avatar-card.pip:hover, .avatar-card.pip:focus { border-color: var(--pip-primary); }
+    .avatar-card.sunny:hover, .avatar-card.sunny:focus { border-color: var(--sunny-primary); }
+    .avatar-card.zero:hover, .avatar-card.zero:focus { border-color: var(--zero-primary); }
+
+    .avatar-card .name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1e1b4b;
+    }
+    .avatar-card .tagline {
+      font-size: 0.78rem;
+      color: #6b7280;
+      text-align: center;
+    }
+
+    /* ─── Character SVG container ──────────────────── */
+    .character-wrap {
+      position: relative;
+      width: 200px;
+      height: 240px;
+      flex-shrink: 0;
+    }
+    .character-wrap svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* sparkles for correct */
+    .sparkle {
+      position: absolute;
+      pointer-events: none;
+      font-size: 1.6rem;
+      opacity: 0;
+    }
+
+    /* ─── Character animation states ──────────────── */
+    /* IDLE: gentle float */
+    @keyframes float-idle {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-8px); }
+    }
+    /* TALKING: slight nod */
+    @keyframes talk-nod {
+      0%, 100% { transform: rotate(0deg) translateY(0); }
+      25%       { transform: rotate(2deg) translateY(-3px); }
+      75%       { transform: rotate(-2deg) translateY(-3px); }
+    }
+    /* CORRECT: jump + scale */
+    @keyframes correct-jump {
+      0%   { transform: translateY(0) scale(1); }
+      30%  { transform: translateY(-28px) scale(1.05); }
+      55%  { transform: translateY(-10px) scale(1.02); }
+      75%  { transform: translateY(-20px) scale(1.04); }
+      100% { transform: translateY(0) scale(1); }
+    }
+    /* INCORRECT: shake */
+    @keyframes incorrect-shake {
+      0%, 100% { transform: translateX(0); }
+      15%       { transform: translateX(-10px); }
+      30%       { transform: translateX(10px); }
+      45%       { transform: translateX(-8px); }
+      60%       { transform: translateX(8px); }
+      75%       { transform: translateX(-4px); }
+      90%       { transform: translateX(4px); }
+    }
+    /* LISTENING: bounce */
+    @keyframes listen-bounce {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-4px); }
+    }
+    /* blink eyes */
+    @keyframes blink {
+      0%, 90%, 100% { transform: scaleY(1); }
+      95%            { transform: scaleY(0.1); }
+    }
+    /* talking mouth */
+    @keyframes mouth-talk {
+      0%, 100% { d: path('M -12 0 Q 0 8 12 0'); }
+      50%       { d: path('M -12 0 Q 0 18 12 0'); }
+    }
+    /* sparkle pop */
+    @keyframes sparkle-pop {
+      0%   { opacity: 0; transform: scale(0.2) translateY(0); }
+      40%  { opacity: 1; transform: scale(1.3) translateY(-20px); }
+      100% { opacity: 0; transform: scale(0.8) translateY(-40px); }
+    }
+
+    .char-figure {
+      transform-origin: center bottom;
+    }
+    .char-figure.idle    { animation: float-idle 2.5s ease-in-out infinite; }
+    .char-figure.talking { animation: talk-nod 0.5s ease-in-out infinite; }
+    .char-figure.correct { animation: correct-jump 0.7s ease-out forwards; }
+    .char-figure.incorrect { animation: incorrect-shake 0.6s ease-in-out forwards; }
+    .char-figure.listening { animation: listen-bounce 1s ease-in-out infinite; }
+
+    .char-eye { animation: blink 3s ease-in-out infinite; transform-origin: center center; }
+    .char-eye.left  { animation-delay: 0s; }
+    .char-eye.right { animation-delay: 0.05s; }
+
+    /* ─── Game Screen Layout ───────────────────────── */
+    #screen-game {
+      background: white;
+      border-radius: 32px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      padding: 24px 20px 28px;
+    }
+
+    .game-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      width: 100%;
+    }
+
+    /* ─── Speech Bubble ────────────────────────────── */
+    .speech-bubble {
+      position: relative;
+      background: #f0f9ff;
+      border: 3px solid #0284c7;
+      border-radius: 20px;
+      padding: 16px 18px;
+      font-size: 1.2rem;
+      color: #0c4a6e;
+      flex: 1;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      line-height: 1.4;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .speech-bubble::after {
+      content: '';
+      position: absolute;
+      left: -18px;
+      top: 28px;
+      border: 9px solid transparent;
+      border-right-color: #0284c7;
+    }
+    .speech-bubble::before {
+      content: '';
+      position: absolute;
+      left: -12px;
+      top: 31px;
+      border: 6px solid transparent;
+      border-right-color: #f0f9ff;
+      z-index: 1;
+    }
+    .speech-bubble.correct-bubble {
+      background: #f0fdf4;
+      border-color: #16a34a;
+      color: #14532d;
+    }
+    .speech-bubble.correct-bubble::after { border-right-color: #16a34a; }
+    .speech-bubble.correct-bubble::before { border-right-color: #f0fdf4; }
+    .speech-bubble.incorrect-bubble {
+      background: #fff1f2;
+      border-color: #dc2626;
+      color: #7f1d1d;
+    }
+    .speech-bubble.incorrect-bubble::after { border-right-color: #dc2626; }
+    .speech-bubble.incorrect-bubble::before { border-right-color: #fff1f2; }
+
+    /* ─── Question Display ─────────────────────────── */
+    .question-display {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 20px;
+      padding: 20px;
+      text-align: center;
+      color: white;
+      width: 100%;
+      font-size: clamp(1.8rem, 6vw, 2.8rem);
+      font-weight: 900;
+      letter-spacing: 0.05em;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    /* ─── Score Bar ────────────────────────────────── */
+    .score-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+    }
+    .score-dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      transition: background 0.3s, transform 0.3s;
+    }
+    .score-dot.correct  { background: #86efac; transform: scale(1.1); }
+    .score-dot.incorrect { background: #fca5a5; transform: scale(1.1); }
+
+    /* ─── Mic Button ───────────────────────────────── */
+    .mic-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .mic-btn {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: none;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.4rem;
+      box-shadow: 0 4px 16px rgba(102,126,234,0.4);
+      transition: transform 0.15s, box-shadow 0.15s;
+      position: relative;
+      outline: none;
+    }
+    .mic-btn:hover:not(:disabled) {
+      transform: scale(1.06);
+      box-shadow: 0 6px 20px rgba(102,126,234,0.5);
+    }
+    .mic-btn:active:not(:disabled) { transform: scale(0.96); }
+    .mic-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .mic-btn.listening {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      box-shadow: 0 4px 16px rgba(239,68,68,0.5);
+      animation: mic-pulse 1s ease-in-out infinite;
+    }
+    @keyframes mic-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+      50%       { box-shadow: 0 0 0 16px rgba(239,68,68,0); }
+    }
+
+    .mic-label {
+      font-size: 0.9rem;
+      color: #6b7280;
+      font-weight: 600;
+    }
+
+    .transcript-display {
+      min-height: 28px;
+      font-size: 1rem;
+      color: #374151;
+      font-style: italic;
+      text-align: center;
+    }
+
+    /* ─── Results Screen ───────────────────────────── */
+    #screen-results {
+      background: white;
+      border-radius: 32px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      text-align: center;
+    }
+
+    .result-score {
+      font-size: clamp(3rem, 12vw, 5rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .result-label {
+      font-size: 1.1rem;
+      color: #6b7280;
+      margin-top: -4px;
+    }
+
+    .result-stars {
+      font-size: 2.5rem;
+      letter-spacing: 4px;
+    }
+
+    .result-breakdown {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      max-width: 420px;
+    }
+
+    .result-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #f9fafb;
+      border-radius: 10px;
+      padding: 6px 10px;
+      font-size: 0.85rem;
+      color: #374151;
+    }
+    .result-item .eq { color: #6b7280; }
+
+    .btn {
+      padding: 16px 36px;
+      border: none;
+      border-radius: 50px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .btn:hover  { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.2); }
+    .btn:active { transform: translateY(0); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+    }
+    .btn-secondary {
+      background: white;
+      color: #4c1d95;
+      border: 3px solid #7c3aed;
+    }
+
+    /* ─── No speech API warning ────────────────────── */
+    .warning-box {
+      background: #fef3c7;
+      border: 2px solid #f59e0b;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 0.85rem;
+      color: #92400e;
+      text-align: center;
+      display: none;
+      width: 100%;
+    }
+    .warning-box.show { display: block; }
+
+    /* ─── Responsive tweaks ────────────────────────── */
+    @media (max-width: 420px) {
+      .game-top { flex-direction: column; align-items: center; }
+      .speech-bubble::after,
+      .speech-bubble::before { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════
+     SCREEN 1: WELCOME / AVATAR PICKER
+══════════════════════════════════════════════════ -->
+<div id="screen-pick" class="screen active">
+  <h1>🧮 Math Tutor</h1>
+  <p class="subtitle">Pick your teacher to start practicing<br>multiplication tables!</p>
+
+  <div class="avatar-grid">
+    <!-- Professor Pip -->
+    <div class="avatar-card pip" tabindex="0" onclick="selectAvatar('pip')" onkeypress="if(event.key==='Enter') selectAvatar('pip')">
+      <svg viewBox="0 0 120 140" width="110" height="128" aria-label="Professor Pip the owl">
+        <!-- Body -->
+        <ellipse cx="60" cy="95" rx="34" ry="40" fill="#7c3aed"/>
+        <!-- Gown detail -->
+        <ellipse cx="60" cy="88" rx="20" ry="28" fill="#6d28d9"/>
+        <!-- Head -->
+        <circle cx="60" cy="52" r="32" fill="#fde68a"/>
+        <!-- Ear tufts -->
+        <polygon points="40,26 34,10 46,22" fill="#fde68a"/>
+        <polygon points="80,26 86,10 74,22" fill="#fde68a"/>
+        <!-- Eye whites -->
+        <circle cx="48" cy="50" r="11" fill="white"/>
+        <circle cx="72" cy="50" r="11" fill="white"/>
+        <!-- Pupils -->
+        <circle class="char-eye left"  cx="48" cy="51" r="7" fill="#1e1b4b"/>
+        <circle class="char-eye right" cx="72" cy="51" r="7" fill="#1e1b4b"/>
+        <!-- Eye shine -->
+        <circle cx="51" cy="48" r="2.5" fill="white"/>
+        <circle cx="75" cy="48" r="2.5" fill="white"/>
+        <!-- Beak -->
+        <polygon points="60,58 54,64 66,64" fill="#f59e0b"/>
+        <!-- Graduation cap -->
+        <rect x="36" y="24" width="48" height="6" rx="3" fill="#1e1b4b"/>
+        <rect x="54" y="14" width="12" height="12" rx="2" fill="#1e1b4b"/>
+        <line x1="84" y1="27" x2="90" y2="38" stroke="#fbbf24" stroke-width="2"/>
+        <circle cx="90" cy="39" r="3" fill="#fbbf24"/>
+        <!-- Bow tie -->
+        <polygon points="48,115 60,122 48,129" fill="#fbbf24"/>
+        <polygon points="72,115 60,122 72,129" fill="#fbbf24"/>
+        <circle cx="60" cy="122" r="4" fill="#fbbf24"/>
+        <!-- Wings/arms -->
+        <ellipse cx="28" cy="100" rx="12" ry="22" fill="#6d28d9" transform="rotate(-15 28 100)"/>
+        <ellipse cx="92" cy="100" rx="12" ry="22" fill="#6d28d9" transform="rotate(15 92 100)"/>
+        <!-- Feet -->
+        <ellipse cx="48" cy="133" rx="10" ry="5" fill="#f59e0b"/>
+        <ellipse cx="72" cy="133" rx="10" ry="5" fill="#f59e0b"/>
+      </svg>
+      <span class="name">Professor Pip</span>
+      <span class="tagline">Wise & encouraging 🦉</span>
+    </div>
+
+    <!-- Ms. Sunny -->
+    <div class="avatar-card sunny" tabindex="0" onclick="selectAvatar('sunny')" onkeypress="if(event.key==='Enter') selectAvatar('sunny')">
+      <svg viewBox="0 0 120 140" width="110" height="128" aria-label="Ms. Sunny the teacher">
+        <!-- Body / dress -->
+        <path d="M 20 140 L 28 85 Q 60 75 92 85 L 100 140 Z" fill="#ea580c"/>
+        <!-- Dress detail -->
+        <path d="M 42 140 L 46 90 Q 60 84 74 90 L 78 140 Z" fill="#fb923c"/>
+        <!-- Neck -->
+        <rect x="52" y="68" width="16" height="16" rx="4" fill="#fcd34d"/>
+        <!-- Head -->
+        <circle cx="60" cy="50" r="30" fill="#fcd34d"/>
+        <!-- Hair top -->
+        <path d="M 32 42 Q 60 10 88 42 Q 78 20 60 18 Q 42 20 32 42 Z" fill="#92400e"/>
+        <!-- Hair sides -->
+        <ellipse cx="27" cy="55" rx="8" ry="15" fill="#92400e"/>
+        <ellipse cx="93" cy="55" rx="8" ry="15" fill="#92400e"/>
+        <!-- Eye whites -->
+        <ellipse cx="48" cy="49" rx="9" ry="10" fill="white"/>
+        <ellipse cx="72" cy="49" rx="9" ry="10" fill="white"/>
+        <!-- Pupils -->
+        <circle class="char-eye left"  cx="48" cy="50" r="6" fill="#1e1b4b"/>
+        <circle class="char-eye right" cx="72" cy="50" r="6" fill="#1e1b4b"/>
+        <!-- Eye shine -->
+        <circle cx="51" cy="47" r="2" fill="white"/>
+        <circle cx="75" cy="47" r="2" fill="white"/>
+        <!-- Lashes -->
+        <line x1="40" y1="40" x2="38" y2="36" stroke="#92400e" stroke-width="2"/>
+        <line x1="44" y1="39" x2="43" y2="35" stroke="#92400e" stroke-width="2"/>
+        <line x1="64" y1="39" x2="65" y2="35" stroke="#92400e" stroke-width="2"/>
+        <line x1="68" y1="40" x2="70" y2="36" stroke="#92400e" stroke-width="2"/>
+        <!-- Nose -->
+        <circle cx="60" cy="56" r="3" fill="#f59e0b"/>
+        <!-- Smile -->
+        <path d="M 48 64 Q 60 76 72 64" stroke="#92400e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <!-- Rosy cheeks -->
+        <ellipse cx="38" cy="60" rx="8" ry="5" fill="#fca5a5" opacity="0.5"/>
+        <ellipse cx="82" cy="60" rx="8" ry="5" fill="#fca5a5" opacity="0.5"/>
+        <!-- Arms -->
+        <path d="M 28 92 Q 10 100 12 115" stroke="#ea580c" stroke-width="12" fill="none" stroke-linecap="round"/>
+        <path d="M 92 92 Q 110 100 108 115" stroke="#ea580c" stroke-width="12" fill="none" stroke-linecap="round"/>
+        <!-- Hands -->
+        <circle cx="12" cy="116" r="7" fill="#fcd34d"/>
+        <circle cx="108" cy="116" r="7" fill="#fcd34d"/>
+        <!-- Star pin -->
+        <text x="52" y="107" font-size="14" text-anchor="middle">⭐</text>
+        <!-- Feet -->
+        <rect x="40" y="136" width="18" height="8" rx="4" fill="#1e1b4b"/>
+        <rect x="62" y="136" width="18" height="8" rx="4" fill="#1e1b4b"/>
+      </svg>
+      <span class="name">Ms. Sunny</span>
+      <span class="tagline">Energetic & fun ☀️</span>
+    </div>
+
+    <!-- Captain Zero -->
+    <div class="avatar-card zero" tabindex="0" onclick="selectAvatar('zero')" onkeypress="if(event.key==='Enter') selectAvatar('zero')">
+      <svg viewBox="0 0 120 140" width="110" height="128" aria-label="Captain Zero the space explorer">
+        <!-- Jetpack/body suit -->
+        <rect x="24" y="80" width="72" height="55" rx="16" fill="#0284c7"/>
+        <!-- Suit detail stripe -->
+        <rect x="50" y="80" width="20" height="55" rx="8" fill="#0369a1"/>
+        <!-- Chest badge -->
+        <circle cx="60" cy="103" r="10" fill="#38bdf8"/>
+        <text x="60" y="107" font-size="10" text-anchor="middle" font-weight="bold" fill="#0c4a6e">×÷</text>
+        <!-- Helmet -->
+        <circle cx="60" cy="48" r="32" fill="#7dd3fc"/>
+        <circle cx="60" cy="48" r="26" fill="#0c4a6e"/>
+        <!-- Visor shine -->
+        <ellipse cx="52" cy="40" rx="8" ry="6" fill="#38bdf8" opacity="0.4"/>
+        <!-- Eyes inside visor -->
+        <circle class="char-eye left"  cx="50" cy="48" r="7" fill="#7dd3fc"/>
+        <circle class="char-eye right" cx="70" cy="48" r="7" fill="#7dd3fc"/>
+        <circle cx="50" cy="48" r="4" fill="#0c4a6e"/>
+        <circle cx="70" cy="48" r="4" fill="#0c4a6e"/>
+        <!-- Eye shine -->
+        <circle cx="52" cy="46" r="1.8" fill="white"/>
+        <circle cx="72" cy="46" r="1.8" fill="white"/>
+        <!-- Smile in visor -->
+        <path d="M 46 58 Q 60 68 74 58" stroke="#7dd3fc" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <!-- Helmet top antenna -->
+        <line x1="60" y1="18" x2="60" y2="8" stroke="#38bdf8" stroke-width="3"/>
+        <circle cx="60" cy="6" r="5" fill="#facc15"/>
+        <!-- Helmet side bolts -->
+        <circle cx="28" cy="50" r="4" fill="#38bdf8"/>
+        <circle cx="92" cy="50" r="4" fill="#38bdf8"/>
+        <!-- Gloves/arms -->
+        <path d="M 24 94 Q 6 98 4 114" stroke="#0284c7" stroke-width="12" fill="none" stroke-linecap="round"/>
+        <path d="M 96 94 Q 114 98 116 114" stroke="#0284c7" stroke-width="12" fill="none" stroke-linecap="round"/>
+        <circle cx="4" cy="115" r="8" fill="#38bdf8"/>
+        <circle cx="116" cy="115" r="8" fill="#38bdf8"/>
+        <!-- Boots -->
+        <rect x="34" y="130" width="20" height="10" rx="5" fill="#0c4a6e"/>
+        <rect x="66" y="130" width="20" height="10" rx="5" fill="#0c4a6e"/>
+      </svg>
+      <span class="name">Captain Zero</span>
+      <span class="tagline">Adventurous & cool 🚀</span>
+    </div>
+  </div>
+
+  <!-- Mic permission banner -->
+  <div id="mic-permission-banner" style="
+      width:100%; max-width:420px;
+      border-radius:14px; padding:14px 18px;
+      display:flex; align-items:center; gap:12px;
+      font-size:0.95rem; cursor:pointer;
+      background:#eff6ff; border:2px solid #93c5fd; color:#1e40af;
+      transition: background 0.2s, border-color 0.2s;
+  " onclick="requestMicPermission()" role="button" tabindex="0"
+     onkeypress="if(event.key==='Enter') requestMicPermission()">
+    <span id="mic-perm-icon" style="font-size:1.5rem">🎤</span>
+    <div>
+      <strong id="mic-perm-title">Allow microphone</strong><br>
+      <span id="mic-perm-desc" style="font-size:0.82rem">
+        Tap here once so the app can hear your answers without asking every time.
+      </span>
+    </div>
+  </div>
+
+  <div class="warning-box" id="stt-warning">
+    ⚠️ Your browser doesn't support voice input. You can still use this app — answers will be typed instead!
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     SCREEN 2: NAME ENTRY
+══════════════════════════════════════════════════ -->
+<div id="screen-name" class="screen" style="justify-content:center;gap:28px;">
+  <div class="character-wrap" id="name-char-wrap"></div>
+  <div class="speech-bubble" id="name-bubble" aria-live="polite"
+       style="max-width:380px;font-size:1.3rem;text-align:center;
+              position:relative;margin-top:0;">
+    Hi there! What's your name?
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;max-width:320px;">
+    <input id="name-input" type="text" maxlength="20"
+      placeholder="Type your name here…"
+      autocomplete="off" autocorrect="off" spellcheck="false"
+      style="width:100%;padding:16px 20px;font-size:1.4rem;border:3px solid #7c3aed;
+             border-radius:16px;text-align:center;outline:none;
+             font-family:inherit;color:#1e1b4b;background:#faf5ff;"
+      onkeypress="if(event.key==='Enter') submitName()"
+      oninput="document.getElementById('name-go-btn').disabled = this.value.trim().length === 0"
+    />
+    <button id="name-go-btn" class="btn btn-primary" onclick="submitName()"
+      style="width:100%;font-size:1.1rem;" disabled>
+      Let's go! 🚀
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     SCREEN 3: GAME
+══════════════════════════════════════════════════ -->
+<div id="screen-game" class="screen">
+  <!-- Top bar: score + quit -->
+  <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+    <div class="score-bar" id="score-bar" aria-label="Score progress" style="flex:1;justify-content:flex-start;"></div>
+    <button class="btn btn-secondary" onclick="quitGame()"
+      style="padding:8px 18px;font-size:0.85rem;flex-shrink:0;margin-left:12px;">
+      ✕ Quit
+    </button>
+  </div>
+
+  <!-- Top row: character + speech bubble -->
+  <div class="game-top">
+    <div class="character-wrap" id="character-wrap">
+      <!-- SVG injected by JS -->
+      <span class="sparkle" id="sp1" style="top:0;left:10%">✨</span>
+      <span class="sparkle" id="sp2" style="top:10%;right:5%">⭐</span>
+      <span class="sparkle" id="sp3" style="top:5%;left:50%">🌟</span>
+      <span class="sparkle" id="sp4" style="top:20%;left:0%">✨</span>
+    </div>
+    <div class="speech-bubble" id="speech-bubble" aria-live="polite">
+      Let's go! I'll ask you a question…
+    </div>
+  </div>
+
+  <!-- Question display -->
+  <div class="question-display" id="question-display" style="display:none">
+    — — —
+  </div>
+
+  <!-- Mic area -->
+  <div class="mic-area">
+    <button class="mic-btn" id="mic-btn" onclick="handleMicClick()" aria-label="Press to speak your answer" disabled>
+      🎤
+    </button>
+    <span class="mic-label" id="mic-label">Waiting…</span>
+    <div class="transcript-display" id="transcript-display"></div>
+  </div>
+
+  <!-- Fallback text input (shown if no STT, or as override) -->
+  <div id="type-answer-area" style="display:none; width:100%; display:none; gap:10px; flex-direction:column; align-items:center;">
+    <input id="type-input" type="number" placeholder="Type your answer"
+      style="width:160px;padding:12px;font-size:1.4rem;border:3px solid #7c3aed;border-radius:14px;text-align:center;outline:none;"
+      onkeypress="if(event.key==='Enter') submitTyped()"/>
+    <button class="btn btn-primary" onclick="submitTyped()" style="padding:12px 28px;font-size:1rem">Submit ✓</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     SCREEN 3: RESULTS
+══════════════════════════════════════════════════ -->
+<div id="screen-results" class="screen">
+  <div id="results-char-wrap" class="character-wrap"></div>
+  <h1 id="results-heading">Great job! 🎉</h1>
+  <div class="result-score" id="result-score">8 / 10</div>
+  <div class="result-label">questions correct</div>
+  <div class="result-stars" id="result-stars">⭐⭐⭐</div>
+  <div class="result-breakdown" id="result-breakdown"></div>
+  <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;">
+    <button class="btn btn-primary" onclick="playAgain()">Play Again 🔄</button>
+    <button class="btn btn-secondary" onclick="changePicker()">New Teacher 👩‍🏫</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+//  DATA: Avatars
+// ══════════════════════════════════════════════════
+const AVATARS = {
+  pip: {
+    name: 'Professor Pip',
+    voice: { pitch: 0.85, rate: 0.88 },
+    greetings: [
+      "Hoot hoot! Ready to practise your times tables?",
+      "Welcome, young mathematician! Let's sharpen those skills!",
+      "Excellent! Wisdom begins with practice. Let's start!"
+    ],
+    askPrefix: ["Here's one for you:", "Tell me,", "Let's see… ", "Hmm, I wonder if you know…"],
+    correct: [
+      "Brilliant! You're a true mathematician!",
+      "Hoot hoot! Absolutely correct! Well done!",
+      "Superb! I'm very proud of you!",
+      "Correct! Your brain is working wonderfully!",
+      "Outstanding! Full marks on that one!"
+    ],
+    incorrect: [
+      "Not quite — the answer is {ans}. Let's keep going!",
+      "Hmm, that wasn't right. It's {ans}. You've got this!",
+      "Oops! The correct answer is {ans}. Practice makes perfect!",
+      "Not this time — it's {ans}. Keep trying, you're doing great!"
+    ],
+    finalHigh: "Magnificent! You've mastered those tables!",
+    finalMid:  "Good effort! A bit more practice and you'll be perfect!",
+    finalLow:  "Keep practising — you'll get there! I believe in you!"
+  },
+  sunny: {
+    name: 'Ms. Sunny',
+    voice: { pitch: 1.25, rate: 0.92 },
+    greetings: [
+      "Hey hey hey! Let's do some AWESOME maths!",
+      "Woohoo! I love times tables! Let's go!",
+      "Hi superstar! Ready to show off your maths skills?"
+    ],
+    askPrefix: ["OK! Here we go:", "Ooh, try this one:", "Ready? Here it is:", "Can you get this one?"],
+    correct: [
+      "YES! That's it! You're on fire! 🔥",
+      "AMAZING! You're a maths superstar!",
+      "WOW! Totally correct! High five! ✋",
+      "YES YES YES! You got it!",
+      "BRILLIANT! You make me so happy!"
+    ],
+    incorrect: [
+      "Oops! It's actually {ans}! You'll get the next one!",
+      "Not this time! The answer is {ans}! Keep going, you're awesome!",
+      "Aww! It's {ans}! Shake it off — next one will be great!",
+      "Nope, it's {ans}! But I still think you're a superstar!"
+    ],
+    finalHigh: "YOU ARE AMAZING! What a fantastic score!",
+    finalMid:  "Nice work superstar! Keep practising and you'll be perfect!",
+    finalLow:  "Don't give up! Every practise session makes you stronger!"
+  },
+  zero: {
+    name: 'Captain Zero',
+    voice: { pitch: 0.95, rate: 0.90 },
+    greetings: [
+      "Commander! Mission: multiply! Are you ready to launch?",
+      "Initiating maths mission. Cadet, report for duty!",
+      "Calculating… all systems ready! Let's blast off into times tables!"
+    ],
+    askPrefix: ["Mission question:", "Compute this:", "Navigation challenge:", "Crew, answer this:"],
+    correct: [
+      "Target acquired! Correct! Mission success! 🚀",
+      "Affirmative! That's the right answer, cadet!",
+      "Houston, we have a correct answer! Well done!",
+      "Lock confirmed! You're a star navigator!",
+      "Mission accomplished! Excellent calculation!"
+    ],
+    incorrect: [
+      "Negative, cadet. The correct answer is {ans}. Recalculate and continue!",
+      "Incorrect trajectory! It's {ans}. Adjust and keep flying!",
+      "System error! The answer is {ans}. Don't give up, cadet!",
+      "Off-course! It's {ans}. Every great explorer makes mistakes!"
+    ],
+    finalHigh: "MISSION COMPLETE! Outstanding performance, cadet!",
+    finalMid:  "Mission status: good! More training and you'll reach the stars!",
+    finalLow:  "Mission continues! Every launch teaches us something new!"
+  }
+};
+
+// ══════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════
+let currentAvatar = null;
+let gameState = 'IDLE'; // IDLE | ASKING | LISTENING | FEEDBACK | RESULTS
+let currentQ = null;    // { a, b, answer }
+let questions = [];     // history: { a, b, answer, userAnswer, correct }
+let TOTAL_QS = 10;
+let recognition = null;
+let hasSpeechRecognition = false;
+let kidName = '';
+let micStream = null; // kept alive to prevent Chrome re-asking for permission
+
+// ══════════════════════════════════════════════════
+//  SPEECH SYNTHESIS (TTS)
+// ══════════════════════════════════════════════════
+function speak(text, onEnd) {
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang  = 'en-US';
+  utt.pitch = (currentAvatar?.voice?.pitch ?? 1.0);
+  utt.rate  = (currentAvatar?.voice?.rate  ?? 0.9);
+  utt.volume = 1;
+  if (onEnd) utt.onend = onEnd;
+  window.speechSynthesis.speak(utt);
+}
+
+// ══════════════════════════════════════════════════
+//  SPEECH RECOGNITION (STT)
+// ══════════════════════════════════════════════════
+function initSTT() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    hasSpeechRecognition = false;
+    document.getElementById('stt-warning').classList.add('show');
+    return;
+  }
+  hasSpeechRecognition = true;
+  recognition = new SpeechRecognition();
+  recognition.lang = 'en-US';
+  recognition.interimResults = true;
+  recognition.maxAlternatives = 3;
+
+  recognition.onresult = (e) => {
+    let interim = '';
+    let final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      if (e.results[i].isFinal) final += t;
+      else interim += t;
+    }
+    document.getElementById('transcript-display').textContent =
+      (final || interim).trim();
+    if (final.trim()) {
+      recognition.stop();
+      processAnswer(final.trim());
+    }
+  };
+
+  recognition.onerror = (e) => {
+    if (e.error === 'no-speech') {
+      setMicIdle();
+      setBubble("I didn't hear anything. Press the mic and try again!", '');
+    } else {
+      setMicIdle();
+    }
+  };
+
+  recognition.onend = () => {
+    if (gameState === 'LISTENING') setMicIdle();
+  };
+}
+
+// ══════════════════════════════════════════════════
+//  AVATAR SELECTION
+// ══════════════════════════════════════════════════
+function selectAvatar(id) {
+  currentAvatar = AVATARS[id];
+  currentAvatar.id = id;
+
+  // inject SVG into all screens
+  injectCharacterSVG('character-wrap', id);
+  injectCharacterSVG('results-char-wrap', id);
+  injectCharacterSVG('name-char-wrap', id);
+
+  // go to name entry screen
+  showScreen('screen-name');
+  const nameInput = document.getElementById('name-input');
+  nameInput.value = '';
+  document.getElementById('name-go-btn').disabled = true;
+  document.getElementById('name-bubble').textContent = 'Hi there! What\'s your name?';
+
+  // animate + speak the question
+  const fig = document.querySelector('#name-char-wrap .char-figure');
+  if (fig) fig.className = 'char-figure talking';
+  speak('Hi there! What is your name?', () => {
+    if (fig) fig.className = 'char-figure idle';
+  });
+  setTimeout(() => nameInput.focus(), 300);
+}
+
+function submitName() {
+  const val = document.getElementById('name-input').value.trim();
+  if (!val) return;
+  kidName = val;
+  window.speechSynthesis.cancel();
+  showScreen('screen-game');
+  startGame();
+}
+
+// Clone the SVG from the picker card into target element
+function injectCharacterSVG(targetId, avatarId) {
+  const target = document.getElementById(targetId);
+  // get svgs from picker
+  const cards = document.querySelectorAll('.avatar-card');
+  let srcSVG = null;
+  cards.forEach(c => {
+    if (c.classList.contains(avatarId)) srcSVG = c.querySelector('svg');
+  });
+  if (!srcSVG) return;
+  // remove old
+  const old = target.querySelector('svg');
+  if (old) old.remove();
+  const clone = srcSVG.cloneNode(true);
+  clone.setAttribute('width', '100%');
+  clone.setAttribute('height', '100%');
+  clone.classList.add('char-figure', 'idle');
+  target.prepend(clone);
+}
+
+// ══════════════════════════════════════════════════
+//  GAME FLOW
+// ══════════════════════════════════════════════════
+function startGame() {
+  questions = [];
+  buildScoreBar();
+  nextQuestion();
+}
+
+function nextQuestion() {
+  if (questions.length >= TOTAL_QS) {
+    showResults();
+    return;
+  }
+
+  const a = randInt(1, 12);
+  const b = randInt(1, 12);
+  currentQ = { a, b, answer: a * b };
+
+  const prefix = pick(currentAvatar.askPrefix);
+  const text = `${prefix} What is ${a} times ${b}?`;
+
+  setBubble(text, '');
+  setQuestionDisplay(`${a} × ${b} = ?`);
+  setAnimState('talking');
+  gameState = 'ASKING';
+
+  speak(text, () => {
+    setAnimState('listening');
+    gameState = 'LISTENING';
+    setMicReady();
+  });
+}
+
+function handleMicClick() {
+  if (gameState !== 'LISTENING') return;
+  if (!hasSpeechRecognition) {
+    toggleTypeInput(true);
+    return;
+  }
+  const btn = document.getElementById('mic-btn');
+  if (btn.classList.contains('listening')) {
+    recognition.stop();
+    setMicIdle();
+  } else {
+    startListening();
+  }
+}
+
+function startListening() {
+  document.getElementById('transcript-display').textContent = '';
+  const btn = document.getElementById('mic-btn');
+  btn.classList.add('listening');
+  btn.textContent = '🔴';
+  document.getElementById('mic-label').textContent = 'Listening… speak now!';
+  try { recognition.start(); } catch(e) { /* already started */ }
+}
+
+function setMicReady() {
+  const btn = document.getElementById('mic-btn');
+  btn.disabled = false;
+  btn.classList.remove('listening');
+  btn.textContent = '🎤';
+  document.getElementById('mic-label').textContent = hasSpeechRecognition
+    ? 'Press 🎤 and say your answer!'
+    : 'Type your answer below';
+
+  if (!hasSpeechRecognition) toggleTypeInput(true);
+}
+
+function setMicIdle() {
+  const btn = document.getElementById('mic-btn');
+  btn.disabled = false;
+  btn.classList.remove('listening');
+  btn.textContent = '🎤';
+  document.getElementById('mic-label').textContent = 'Press 🎤 and try again';
+}
+
+function toggleTypeInput(show) {
+  const area = document.getElementById('type-answer-area');
+  area.style.display = show ? 'flex' : 'none';
+  if (show) document.getElementById('type-input').focus();
+}
+
+function submitTyped() {
+  const val = document.getElementById('type-input').value.trim();
+  document.getElementById('type-input').value = '';
+  toggleTypeInput(false);
+  if (val === '') return;
+  processAnswer(val);
+}
+
+// ══════════════════════════════════════════════════
+//  ANSWER PROCESSING
+// ══════════════════════════════════════════════════
+const WORD_NUMS = {
+  zero:0,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,
+  ten:10,eleven:11,twelve:12,thirteen:13,fourteen:14,fifteen:15,sixteen:16,
+  seventeen:17,eighteen:18,nineteen:19,twenty:20,thirty:30,forty:40,
+  fifty:50,sixty:60,seventy:70,eighty:80,ninety:90,hundred:100,
+  'twenty-one':21,'twenty-two':22,'twenty-three':23,'twenty-four':24,
+  'twenty-five':25,'twenty-six':26,'twenty-seven':27,'twenty-eight':28,'twenty-nine':29,
+  'thirty-one':31,'thirty-two':32,'thirty-three':33,'thirty-four':34,
+  'thirty-five':35,'thirty-six':36,'thirty-seven':37,'thirty-eight':38,'thirty-nine':39,
+  'forty-one':41,'forty-two':42,'forty-three':43,'forty-four':44,
+  'forty-five':45,'forty-six':46,'forty-seven':47,'forty-eight':48,'forty-nine':49,
+  'fifty-one':51,'fifty-two':52,'fifty-three':53,'fifty-four':54,
+  'fifty-five':55,'fifty-six':56,'fifty-seven':57,'fifty-eight':58,'fifty-nine':59,
+  'sixty-one':61,'sixty-two':62,'sixty-three':63,'sixty-four':64,
+  'sixty-five':65,'sixty-six':66,'sixty-seven':67,'sixty-eight':68,'sixty-nine':69,
+  'seventy-two':72,'seventy-six':76,'eighty-one':81,'eighty-four':84
+};
+
+function parseSpokenNumber(transcript) {
+  const t = transcript.toLowerCase().trim();
+  // direct digit(s)
+  const digits = t.replace(/[^0-9]/g, '');
+  if (digits.length > 0) return parseInt(digits, 10);
+  // word lookup (exact)
+  if (WORD_NUMS[t] !== undefined) return WORD_NUMS[t];
+  // two-word compound: "forty two" → 40 + 2
+  const words = t.split(/\s+/);
+  if (words.length === 2) {
+    const hi = WORD_NUMS[words[0]];
+    const lo = WORD_NUMS[words[1]];
+    if (hi !== undefined && lo !== undefined) return hi + lo;
+  }
+  return NaN;
+}
+
+function processAnswer(transcript) {
+  if (gameState !== 'LISTENING') return;
+  gameState = 'FEEDBACK';
+
+  const userNum = parseSpokenNumber(transcript);
+  const correct = (!isNaN(userNum) && userNum === currentQ.answer);
+
+  questions.push({ ...currentQ, userAnswer: userNum, correct, transcript });
+  updateScoreBar(questions.length - 1, correct);
+
+  const av = currentAvatar;
+  let feedbackText;
+
+  if (correct) {
+    feedbackText = pick(av.correct);
+    setBubble(feedbackText, 'correct-bubble');
+    setAnimState('correct');
+    showSparkles();
+    setQuestionDisplay(`${currentQ.a} × ${currentQ.b} = ✅ ${currentQ.answer}`);
+  } else {
+    feedbackText = pick(av.incorrect).replace('{ans}', currentQ.answer);
+    setBubble(feedbackText, 'incorrect-bubble');
+    setAnimState('incorrect');
+    setQuestionDisplay(`${currentQ.a} × ${currentQ.b} = ❌ (${currentQ.answer})`);
+  }
+
+  document.getElementById('mic-btn').disabled = true;
+  document.getElementById('mic-label').textContent = '';
+  document.getElementById('transcript-display').textContent = '';
+
+  speak(feedbackText, () => {
+    setTimeout(() => {
+      setAnimState('idle');
+      nextQuestion();
+    }, 800);
+  });
+}
+
+// ══════════════════════════════════════════════════
+//  RESULTS
+// ══════════════════════════════════════════════════
+function showResults() {
+  const correct = questions.filter(q => q.correct).length;
+  const pct = correct / TOTAL_QS;
+
+  // heading & message
+  let heading, msg;
+  const nameTag = kidName ? `, ${kidName}` : '';
+  if (pct >= 0.9) {
+    heading = `Amazing${nameTag}! 🏆`;
+    msg = currentAvatar.finalHigh;
+  } else if (pct >= 0.6) {
+    heading = `Good job${nameTag}! 👍`;
+    msg = currentAvatar.finalMid;
+  } else {
+    heading = `Keep going${nameTag}! 💪`;
+    msg = currentAvatar.finalLow;
+  }
+
+  document.getElementById('results-heading').textContent = heading;
+  document.getElementById('result-score').textContent = `${correct} / ${TOTAL_QS}`;
+  document.getElementById('result-stars').textContent =
+    pct >= 0.9 ? '⭐⭐⭐' : pct >= 0.6 ? '⭐⭐' : '⭐';
+
+  // breakdown
+  const bd = document.getElementById('result-breakdown');
+  bd.innerHTML = '';
+  questions.forEach(q => {
+    const el = document.createElement('div');
+    el.className = 'result-item';
+    el.innerHTML = `<span>${q.a} × ${q.b}</span><span class="eq">=</span>
+      <strong>${q.answer}</strong>
+      <span>${q.correct ? '✅' : '❌'}</span>`;
+    bd.appendChild(el);
+  });
+
+  showScreen('screen-results');
+
+  // animate result character
+  const figEl = document.querySelector('#results-char-wrap .char-figure');
+  if (figEl) {
+    figEl.className = 'char-figure ' + (pct >= 0.6 ? 'correct' : 'incorrect');
+    setTimeout(() => { if (figEl) figEl.className = 'char-figure idle'; }, 900);
+  }
+
+  speak(msg);
+}
+
+function playAgain() {
+  showScreen('screen-game');
+  buildScoreBar();
+  startGame();
+}
+
+function changePicker() {
+  showScreen('screen-pick');
+  document.getElementById('type-answer-area').style.display = 'none';
+}
+
+function quitGame() {
+  window.speechSynthesis.cancel();
+  if (recognition) { try { recognition.stop(); } catch(e) {} }
+  gameState = 'IDLE';
+  document.getElementById('mic-btn').disabled = true;
+  document.getElementById('mic-label').textContent = '';
+  document.getElementById('transcript-display').textContent = '';
+  document.getElementById('type-answer-area').style.display = 'none';
+  showScreen('screen-pick');
+}
+
+// ══════════════════════════════════════════════════
+//  SCORE BAR
+// ══════════════════════════════════════════════════
+function buildScoreBar() {
+  const bar = document.getElementById('score-bar');
+  bar.innerHTML = '';
+  for (let i = 0; i < TOTAL_QS; i++) {
+    const d = document.createElement('div');
+    d.className = 'score-dot';
+    d.id = `dot-${i}`;
+    d.textContent = i + 1;
+    bar.appendChild(d);
+  }
+}
+
+function updateScoreBar(index, correct) {
+  const dot = document.getElementById(`dot-${index}`);
+  if (dot) {
+    dot.classList.add(correct ? 'correct' : 'incorrect');
+    dot.textContent = correct ? '✅' : '❌';
+  }
+}
+
+// ══════════════════════════════════════════════════
+//  DOM HELPERS
+// ══════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function setBubble(text, extraClass) {
+  const b = document.getElementById('speech-bubble');
+  b.className = 'speech-bubble' + (extraClass ? ' ' + extraClass : '');
+  b.textContent = text;
+}
+
+function setQuestionDisplay(text) {
+  const qd = document.getElementById('question-display');
+  qd.style.display = 'block';
+  qd.textContent = text;
+}
+
+function setAnimState(state) {
+  const fig = document.querySelector('#character-wrap .char-figure');
+  if (!fig) return;
+  fig.className = `char-figure ${state}`;
+}
+
+function showSparkles() {
+  ['sp1','sp2','sp3','sp4'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.style.animation = 'none';
+    el.offsetHeight; // reflow
+    el.style.animation = `sparkle-pop 0.8s ease-out ${i * 0.12}s forwards`;
+  });
+}
+
+// ══════════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════════
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+// ══════════════════════════════════════════════════
+//  MIC PERMISSION
+// ══════════════════════════════════════════════════
+function setMicBanner(state) {
+  const banner = document.getElementById('mic-permission-banner');
+  const icon   = document.getElementById('mic-perm-icon');
+  const title  = document.getElementById('mic-perm-title');
+  const desc   = document.getElementById('mic-perm-desc');
+  if (state === 'granted') {
+    banner.style.background     = '#f0fdf4';
+    banner.style.borderColor    = '#86efac';
+    banner.style.color          = '#14532d';
+    banner.style.cursor         = 'default';
+    icon.textContent  = '✅';
+    title.textContent = 'Microphone ready!';
+    desc.textContent  = 'Voice input is enabled — no more pop-ups during quizzes.';
+  } else if (state === 'denied') {
+    banner.style.background     = '#fff1f2';
+    banner.style.borderColor    = '#fca5a5';
+    banner.style.color          = '#7f1d1d';
+    banner.style.cursor         = 'default';
+    icon.textContent  = '🚫';
+    title.textContent = 'Microphone blocked';
+    desc.textContent  = 'Enable mic access in your browser settings, then refresh the page.';
+  }
+  // default (prompt) state stays as-is
+}
+
+async function requestMicPermission() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
+  try {
+    // Keep stream alive — Chrome won't re-prompt SpeechRecognition
+    // if the mic device is already open in the same page.
+    if (micStream) micStream.getTracks().forEach(t => t.stop());
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    setMicBanner('granted');
+  } catch (err) {
+    setMicBanner('denied');
+  }
+}
+
+async function checkMicPermission() {
+  if (!navigator.permissions) return; // Safari doesn't support permissions API
+  try {
+    const status = await navigator.permissions.query({ name: 'microphone' });
+    if (status.state === 'granted') setMicBanner('granted');
+    if (status.state === 'denied')  setMicBanner('denied');
+    status.onchange = () => {
+      if (status.state === 'granted') setMicBanner('granted');
+      if (status.state === 'denied')  setMicBanner('denied');
+    };
+  } catch (e) { /* permissions API not supported */ }
+}
+
+// ══════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════
+initSTT();
+checkMicPermission();
+</script>
+</body>
+</html>
