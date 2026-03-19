@@ -1082,7 +1082,7 @@ function setMicReady() {
   btn.classList.remove('listening');
   btn.textContent = '🎤';
   document.getElementById('mic-label').textContent = hasSpeechRecognition
-    ? 'Press 🎤 and say your answer!'
+    ? 'Press 🎤 or tap Space to answer!'
     : 'Type your answer below';
 
   if (!hasSpeechRecognition) toggleTypeInput(true);
@@ -1455,6 +1455,22 @@ async function checkMicPermission() {
     };
   } catch (e) { /* permissions API not supported */ }
 }
+
+// ══════════════════════════════════════════════════
+//  SPACEBAR → MIC SHORTCUT
+// ══════════════════════════════════════════════════
+document.addEventListener('keydown', (e) => {
+  // Only fire on spacebar, and not when typing in an input/textarea
+  if (e.code !== 'Space') return;
+  const tag = document.activeElement?.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON') return;
+
+  // Must be on the game screen and waiting for the kid's answer
+  if (gameState !== 'LISTENING' && gameState !== 'ASKING') return;
+
+  e.preventDefault(); // stop page from scrolling
+  handleMicClick();
+});
 
 // ══════════════════════════════════════════════════
 //  INIT
