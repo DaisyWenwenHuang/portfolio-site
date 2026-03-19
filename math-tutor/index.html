@@ -411,6 +411,59 @@
       border: 3px solid #7c3aed;
     }
 
+    /* ─── Number Picker Tiles ──────────────────────── */
+    .num-tiles-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      width: 100%;
+      max-width: 340px;
+    }
+
+    .num-tile {
+      aspect-ratio: 1;
+      border-radius: 16px;
+      border: 3px solid rgba(255,255,255,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform 0.15s, opacity 0.2s, box-shadow 0.15s;
+      color: white;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      user-select: none;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.25);
+    }
+    .num-tile:hover  { transform: scale(1.1); box-shadow: 0 6px 16px rgba(0,0,0,0.28); }
+    .num-tile:active { transform: scale(0.95); }
+    .num-tile.selected   { opacity: 1; }
+    .num-tile.deselected { opacity: 0.22; filter: grayscale(0.4); box-shadow: none; border-color: transparent; }
+
+    .quick-btns {
+      display: flex;
+      gap: 10px;
+    }
+    .btn-sm {
+      padding: 8px 18px;
+      font-size: 0.88rem;
+    }
+
+    .number-warning {
+      display: none;
+      background: #fef3c7;
+      border: 2px solid #f59e0b;
+      border-radius: 12px;
+      padding: 10px 18px;
+      font-size: 0.95rem;
+      color: #92400e;
+      text-align: center;
+      width: 100%;
+      max-width: 340px;
+    }
+    .number-warning.show { display: block; }
+
     /* ─── No speech API warning ────────────────────── */
     .warning-box {
       background: #fef3c7;
@@ -636,6 +689,35 @@
 </div>
 
 <!-- ══════════════════════════════════════════════════
+     SCREEN 2.5: NUMBER PICKER
+══════════════════════════════════════════════════ -->
+<div id="screen-numbers" class="screen" style="justify-content:center;gap:20px;">
+  <div class="character-wrap" id="numbers-char-wrap"></div>
+  <div class="speech-bubble" id="numbers-bubble" aria-live="polite"
+       style="max-width:380px;font-size:1.15rem;text-align:center;position:relative;margin-top:0;">
+    Which times tables do you want to practice?
+  </div>
+
+  <!-- Quick select buttons -->
+  <div class="quick-btns">
+    <button class="btn btn-secondary btn-sm" onclick="selectAllNumbers()">✅ Select All</button>
+    <button class="btn btn-secondary btn-sm" onclick="selectNoNumbers()">✖ Clear All</button>
+  </div>
+
+  <!-- 12 colorful toggle tiles -->
+  <div class="num-tiles-grid" id="number-tiles" role="group" aria-label="Select times tables"></div>
+
+  <!-- Warning if none selected -->
+  <div class="number-warning" id="number-warning">🙈 Pick at least 1 number first!</div>
+
+  <!-- Start button -->
+  <button class="btn btn-primary" onclick="startFromNumberPicker()"
+          style="width:100%;max-width:340px;font-size:1.15rem;">
+    Let's Play! 🎮
+  </button>
+</div>
+
+<!-- ══════════════════════════════════════════════════
      SCREEN 3: GAME
 ══════════════════════════════════════════════════ -->
 <div id="screen-game" class="screen">
@@ -798,6 +880,14 @@ let recognition = null;
 let hasSpeechRecognition = false;
 let kidName = '';
 let micStream = null; // kept alive to prevent Chrome re-asking for permission
+let selectedNumbers = new Set([1,2,3,4,5,6,7,8,9,10,11,12]);
+
+// Rainbow palette — one colour per number tile 1–12
+const TILE_COLORS = [
+  '#ef4444','#f97316','#eab308','#22c55e',
+  '#14b8a6','#06b6d4','#3b82f6','#6366f1',
+  '#8b5cf6','#ec4899','#f43f5e','#d97706'
+];
 
 // ══════════════════════════════════════════════════
 //  SPEECH SYNTHESIS (TTS)
@@ -870,6 +960,7 @@ function selectAvatar(id) {
   injectCharacterSVG('character-wrap', id);
   injectCharacterSVG('results-char-wrap', id);
   injectCharacterSVG('name-char-wrap', id);
+  injectCharacterSVG('numbers-char-wrap', id);
 
   // go to name entry screen
   showScreen('screen-name');
@@ -892,8 +983,18 @@ function submitName() {
   if (!val) return;
   kidName = val;
   window.speechSynthesis.cancel();
-  showScreen('screen-game');
-  startGame();
+
+  // Reset & build the number picker, then show it
+  selectedNumbers = new Set([1,2,3,4,5,6,7,8,9,10,11,12]);
+  buildNumberTiles();
+  document.getElementById('number-warning').classList.remove('show');
+  showScreen('screen-numbers');
+
+  const fig = document.querySelector('#numbers-char-wrap .char-figure');
+  const msg = `Great, ${kidName}! Which times tables do you want to practice today?`;
+  document.getElementById('numbers-bubble').textContent = msg;
+  if (fig) fig.className = 'char-figure talking';
+  speak(msg, () => { if (fig) fig.className = 'char-figure idle'; });
 }
 
 // Clone the SVG from the picker card into target element
@@ -931,7 +1032,8 @@ function nextQuestion() {
     return;
   }
 
-  const a = randInt(1, 12);
+  const numArr = Array.from(selectedNumbers);
+  const a = pick(numArr);
   const b = randInt(1, 12);
   currentQ = { a, b, answer: a * b };
 
@@ -1135,9 +1237,17 @@ function showResults() {
 }
 
 function playAgain() {
-  showScreen('screen-game');
-  buildScoreBar();
-  startGame();
+  // Go back to number picker so they can change selection
+  selectedNumbers = new Set([1,2,3,4,5,6,7,8,9,10,11,12]);
+  buildNumberTiles();
+  document.getElementById('number-warning').classList.remove('show');
+  showScreen('screen-numbers');
+
+  const fig = document.querySelector('#numbers-char-wrap .char-figure');
+  const msg = `Want to change the numbers this time, ${kidName}?`;
+  document.getElementById('numbers-bubble').textContent = msg;
+  if (fig) fig.className = 'char-figure talking';
+  speak(msg, () => { if (fig) fig.className = 'char-figure idle'; });
 }
 
 function changePicker() {
@@ -1219,6 +1329,78 @@ function showSparkles() {
 // ══════════════════════════════════════════════════
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+// ══════════════════════════════════════════════════
+//  NUMBER PICKER
+// ══════════════════════════════════════════════════
+function buildNumberTiles() {
+  const grid = document.getElementById('number-tiles');
+  grid.innerHTML = '';
+  for (let n = 1; n <= 12; n++) {
+    const tile = document.createElement('div');
+    tile.className = 'num-tile selected';
+    tile.id = `tile-${n}`;
+    tile.textContent = n;
+    tile.style.background = TILE_COLORS[n - 1];
+    tile.setAttribute('role', 'checkbox');
+    tile.setAttribute('aria-checked', 'true');
+    tile.setAttribute('aria-label', `Times table ${n}`);
+    tile.setAttribute('tabindex', '0');
+    tile.onclick = () => toggleNumber(n);
+    tile.onkeypress = (e) => { if (e.key === 'Enter' || e.key === ' ') toggleNumber(n); };
+    grid.appendChild(tile);
+  }
+}
+
+function toggleNumber(n) {
+  const tile = document.getElementById(`tile-${n}`);
+  if (!tile) return;
+  if (selectedNumbers.has(n)) {
+    selectedNumbers.delete(n);
+    tile.classList.replace('selected', 'deselected');
+    tile.setAttribute('aria-checked', 'false');
+  } else {
+    selectedNumbers.add(n);
+    tile.classList.replace('deselected', 'selected');
+    tile.setAttribute('aria-checked', 'true');
+  }
+  // Hide warning once at least one is selected
+  if (selectedNumbers.size > 0) {
+    document.getElementById('number-warning').classList.remove('show');
+  }
+}
+
+function selectAllNumbers() {
+  for (let n = 1; n <= 12; n++) {
+    selectedNumbers.add(n);
+    const tile = document.getElementById(`tile-${n}`);
+    if (tile) {
+      tile.classList.replace('deselected', 'selected');
+      tile.setAttribute('aria-checked', 'true');
+    }
+  }
+  document.getElementById('number-warning').classList.remove('show');
+}
+
+function selectNoNumbers() {
+  selectedNumbers.clear();
+  for (let n = 1; n <= 12; n++) {
+    const tile = document.getElementById(`tile-${n}`);
+    if (tile) {
+      tile.classList.replace('selected', 'deselected');
+      tile.setAttribute('aria-checked', 'false');
+    }
+  }
+}
+
+function startFromNumberPicker() {
+  if (selectedNumbers.size === 0) {
+    document.getElementById('number-warning').classList.add('show');
+    return;
+  }
+  showScreen('screen-game');
+  startGame();
+}
 
 // ══════════════════════════════════════════════════
 //  MIC PERMISSION
