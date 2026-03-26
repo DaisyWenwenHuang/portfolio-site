@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Building a Free Multiplication Tutor for My Daughter's Class — Daisy Huang</title>
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <style>
+    .post-hero {
+      background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+      border-bottom: 1px solid var(--color-border);
+      padding: 3rem 0 2.5rem;
+    }
+
+    .post-hero .meta {
+      color: var(--color-muted);
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .post-hero h1 {
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 800;
+      color: var(--color-primary);
+      line-height: 1.25;
+      letter-spacing: -0.02em;
+      margin: 0 0 1rem;
+    }
+
+    .post-hero .subtitle {
+      font-size: 1.1rem;
+      color: var(--color-muted);
+      max-width: 640px;
+      line-height: 1.6;
+    }
+
+    .post-body {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 3rem 5%;
+    }
+
+    .post-body h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      margin: 2.5rem 0 0.75rem;
+      letter-spacing: -0.01em;
+    }
+
+    .post-body h2:first-child {
+      margin-top: 0;
+    }
+
+    .post-body p {
+      color: var(--color-text);
+      line-height: 1.8;
+      margin: 0 0 1.2rem;
+      font-size: 1rem;
+    }
+
+    .post-body a {
+      color: var(--color-accent);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .callout {
+      background: #eff6ff;
+      border-left: 4px solid var(--color-accent);
+      border-radius: 0 8px 8px 0;
+      padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+      color: var(--color-text);
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .feature-item {
+      background: var(--color-bg-alt);
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      padding: 1.1rem 1.1rem 1rem;
+    }
+
+    .feature-item .icon {
+      font-size: 1.5rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .feature-item strong {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      margin-bottom: 0.25rem;
+    }
+
+    .feature-item p {
+      font-size: 0.85rem;
+      color: var(--color-muted);
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .cta-box {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      border-radius: 12px;
+      padding: 1.75rem 2rem;
+      text-align: center;
+      margin: 2.5rem 0;
+    }
+
+    .cta-box p {
+      color: rgba(255,255,255,0.9);
+      margin-bottom: 1rem;
+      font-size: 1rem;
+    }
+
+    .cta-box .btn {
+      background: white;
+      color: var(--color-accent);
+      font-weight: 700;
+    }
+
+    .cta-box .btn:hover {
+      background: #f0f9ff;
+    }
+
+    .post-footer {
+      border-top: 1px solid var(--color-border);
+      padding-top: 1.5rem;
+      margin-top: 2.5rem;
+      color: var(--color-muted);
+      font-size: 0.875rem;
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <h1 class="title"><a href="../index.html" style="color:inherit;text-decoration:none;">Daisy Huang</a></h1>
+      <nav class="nav">
+        <a href="../index.html">Home</a>
+        <a href="../projects.html">Projects</a>
+        <a href="../blog.html">Blog</a>
+        <a href="../puzzle.html">Puzzle</a>
+        <a href="../math-tutor/index.html">Math Tutor</a>
+        <a href="../contact.html">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="post-hero">
+    <div class="container">
+      <p class="meta">March 2026 &nbsp;·&nbsp; Side Project &nbsp;·&nbsp; 6 min read</p>
+      <h1>Building a Free Multiplication Tutor for My Daughter's Class</h1>
+      <p class="subtitle">
+        How a weekly volunteer session in a 3rd-grade classroom turned into
+        a voice-powered, animated math quiz game — and why it cost exactly $0 to build and run.
+      </p>
+    </div>
+  </div>
+
+  <div class="post-body">
+
+    <h2>The problem started in a classroom</h2>
+    <p>
+      Every week I volunteer in my daughter's 3rd-grade classroom to help three kids practice their
+      multiplication tables. Thirty minutes. Three kids. One table of flashcards.
+    </p>
+    <p>
+      Thirty minutes sounds like a lot until you realize it goes by in a flash — attendance, getting
+      settled, the inevitable pencil debate — and then you're left with maybe 20 usable minutes.
+      That's just not enough repetition to make multiplication facts stick. Research on early math
+      fluency consistently shows that spaced, frequent practice is what moves facts from effortful
+      recall to automatic memory. One session a week doesn't get you there.
+    </p>
+    <p>
+      The obvious fix was to give kids a way to practice at home. But I didn't want to hand parents a
+      worksheet. I wanted something kids would actually <em>want</em> to open.
+    </p>
+
+    <h2>The constraints that shaped the design</h2>
+
+    <div class="callout">
+      <strong>Design constraints I set for myself:</strong><br>
+      No login. No app to install. No cost to the school or families. Works on any device with a
+      browser. Kids can use it independently without help from a parent.
+    </div>
+
+    <p>
+      The "no cost" constraint was the most important one. Schools and families shouldn't have to pay
+      for a practice tool, and neither should I have to absorb ongoing API or hosting fees just to
+      keep a side project alive. That meant: no LLM calls per answer, no paid third-party services,
+      no backend server to maintain.
+    </p>
+    <p>
+      Everything had to run entirely in the browser. As it turns out, that constraint led to some of
+      the most interesting technical choices in the project.
+    </p>
+
+    <h2>What I built</h2>
+
+    <div class="feature-grid">
+      <div class="feature-item">
+        <div class="icon">🎙️</div>
+        <strong>Voice input</strong>
+        <p>Kids speak their answer aloud. The Web Speech API transcribes it in real time — no typing required.</p>
+      </div>
+      <div class="feature-item">
+        <div class="icon">🧸</div>
+        <strong>Animated characters</strong>
+        <p>Three characters — Pip, Sunny, and Zero — each with their own personality. They jump when you're right and shake when you're wrong.</p>
+      </div>
+      <div class="feature-item">
+        <div class="icon">💬</div>
+        <strong>Speech bubbles</strong>
+        <p>The character reacts with encouragement or a gentle correction after every answer, keeping kids engaged in a conversation.</p>
+      </div>
+      <div class="feature-item">
+        <div class="icon">📊</div>
+        <strong>Score tracker</strong>
+        <p>A row of dots turns green or red as you go through 10 questions — simple visual feedback kids can read at a glance.</p>
+      </div>
+      <div class="feature-item">
+        <div class="icon">📱</div>
+        <strong>Mobile-first</strong>
+        <p>Works on phones and tablets as well as laptops. Kids can practice on a parent's phone without installing anything.</p>
+      </div>
+      <div class="feature-item">
+        <div class="icon">$0</div>
+        <strong>Zero running cost</strong>
+        <p>Hosted as a static file on GitHub Pages. No server, no API key, no subscription. It will stay free as long as the repo exists.</p>
+      </div>
+    </div>
+
+    <h2>The voice input turned out to be the best decision</h2>
+    <p>
+      I originally planned a simple number input field. Then I watched my daughter use an early
+      prototype: she typed slowly, second-guessed herself, backspaced — the friction of typing was
+      getting in the way of the math. Eight-year-olds are not fast typists, and for a timed practice
+      drill, that matters.
+    </p>
+    <p>
+      Switching to voice input via the browser's
+      <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API" target="_blank">Web Speech API</a>
+      changed the experience completely. She would tap the microphone button, say "forty-two", and
+      move on. The latency was low enough that it felt instant. More importantly, saying the answer
+      out loud adds another memory channel — auditory and verbal encoding on top of visual — which
+      is genuinely better for memorization.
+    </p>
+    <p>
+      The main engineering challenge was making speech recognition robust enough for children's
+      voices. Kids say "seven" and the transcriber hears "heaven." They say "forty" and it hears
+      "14." I spent a good amount of time tuning the fuzzy matching: normalizing spoken numbers
+      ("forty two" → 42), handling partial matches, and failing gracefully when the microphone
+      picks up background noise.
+    </p>
+
+    <h2>Why animated characters and not just a scoreboard?</h2>
+    <p>
+      A flat quiz — question, input, next — gets boring fast. I've seen kids abandon perfectly
+      functional learning apps because they feel like school. I wanted the characters to carry
+      enough personality that kids felt like they were playing <em>with</em> someone, not just
+      answering a machine.
+    </p>
+    <p>
+      Each character is a hand-crafted inline SVG with CSS keyframe animations: a gentle idle float,
+      a celebration jump on correct answers, a side-to-side shake on wrong ones, a nodding animation
+      while the character "talks." None of this required any image files — the entire game is a
+      single HTML file. That means it loads fast even on a slow connection, and there are no broken
+      image paths to debug.
+    </p>
+    <p>
+      My daughter's verdict: she picked Pip (the purple one) on her first session and has not
+      switched since. Attachment to a character turns out to be a surprisingly strong motivator
+      for coming back.
+    </p>
+
+    <h2>The build: one HTML file, no framework, no build step</h2>
+    <p>
+      The entire game lives in a single <code>index.html</code>. No React, no build pipeline,
+      no <code>node_modules</code> folder. Inline CSS for styles, inline JavaScript for game logic
+      and speech recognition, inline SVGs for characters.
+    </p>
+    <p>
+      This was a deliberate choice. A framework would have added complexity and a dependency chain
+      that needs maintenance. For a self-contained interactive tool that needs to keep working
+      years from now with zero maintenance, a single static file is the right architecture.
+      The Web Speech API is a browser standard; there is nothing to upgrade.
+    </p>
+    <p>
+      The whole thing is deployed as a subfolder of my portfolio's GitHub Pages repository. No
+      separate hosting account, no CI/CD pipeline. A git push is all it takes to update it.
+    </p>
+
+    <h2>Did it actually work?</h2>
+    <p>
+      My daughter went from uncertain on her 7s and 8s to answering them instantly within about
+      two weeks of using the tutor at home in short daily sessions (her choice, not mine — that's
+      the real metric). She now regularly beats her own score and will correct me if I quote a
+      wrong multiplication fact in casual conversation.
+    </p>
+
+
+    <h2>What I would do differently</h2>
+    <p>
+      The speech recognition API is not available in all browsers (it works well in Chrome and
+      Edge; Firefox support is partial). For a production tool I would add a numeric keypad fallback
+      that appears automatically when the microphone is unavailable, so no child is blocked by a
+      browser limitation.
+    </p>
+    <p>
+      I'd also love to add a parent/teacher dashboard that shows which facts a child is consistently
+      missing — turning the practice into a targeted drill rather than a random quiz. That would
+      require a small backend and user accounts, which brings back the cost and complexity
+      I was trying to avoid. It's the right trade-off for a free, zero-friction tool, but there is
+      clear product value sitting on the table.
+    </p>
+
+    <div class="cta-box">
+      <p>
+        The Math Tutor is free and open to anyone — no account, no download, no cost.
+        Share the link with a child who needs to practice their multiplication tables.
+      </p>
+      <a class="btn" href="../math-tutor/index.html">Try the Math Tutor</a>
+    </div>
+
+    <div class="post-footer">
+      <p>
+        Built with plain HTML, CSS, and the Web Speech API. Hosted on GitHub Pages.
+        Running cost: $0. &nbsp;·&nbsp;
+        <a href="../blog.html">Back to Blog</a>
+      </p>
+    </div>
+
+  </div>
+
+  <footer class="footer">
+    <p>© 2026 Daisy Huang</p>
+  </footer>
+</body>
+</html>
