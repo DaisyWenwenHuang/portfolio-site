@@ -1,111 +1,253 @@
+:root {
+  --color-bg: #ffffff;
+  --color-bg-alt: #f8fafc;
+  --color-primary: #0f172a;
+  --color-accent: #2563eb;
+  --color-accent-hover: #1d4ed8;
+  --color-text: #1e293b;
+  --color-muted: #64748b;
+  --color-border: #e2e8f0;
+  --color-card-bg: #ffffff;
+  --color-tag-bg: #eff6ff;
+  --color-tag-text: #1d4ed8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body {
   font-family: 'Inter', sans-serif;
-  background: #111;
-  color: #eee;
+  background: var(--color-bg);
+  color: var(--color-text);
   margin: 0;
+  line-height: 1.7;
+  font-size: 1rem;
 }
 
 .container {
   width: 90%;
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
 }
 
+/* ── Header & Nav ── */
 .site-header {
-  background: #222;
-  padding: 1rem;
-  border-bottom: 2px solid orange;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  padding: 1rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.site-header .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .title {
   margin: 0;
-  color: orange;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  letter-spacing: -0.02em;
 }
 
 .nav {
-  margin-top: 0.5rem;
-}
-.nav a {
-  margin-right: 1rem;
-  color: #eee;
-  text-decoration: none;
-}
-.nav a:hover {
-  text-decoration: underline;
-  color: orange;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
 }
 
+.nav a {
+  color: var(--color-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.nav a:hover {
+  color: var(--color-accent);
+  background: var(--color-tag-bg);
+}
+
+/* ── Sections ── */
 .section {
-  padding: 2rem 0;
+  padding: 3rem 0;
 }
 
 .section-alt {
-  background: #1a1a1a;
+  background: var(--color-bg-alt);
 }
 
+.section h2 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+  position: relative;
+  display: inline-block;
+}
+
+.section h2::after {
+  content: '';
+  display: block;
+  width: 2.5rem;
+  height: 3px;
+  background: var(--color-accent);
+  border-radius: 2px;
+  margin-top: 0.4rem;
+}
+
+/* ── Grid & Cards ── */
 .grid {
   display: grid;
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+  margin-top: 1.5rem;
 }
 
 .card {
-  background: #222;
-  padding: 1rem;
-  border: 1px solid #444;
-  border-radius: 6px;
-}
-.card h3 {
-  margin-top: 0;
-  color: orange;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.2s, transform 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
-.tagrow {
-  margin-top: 0.5rem;
+.card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
 }
+
+.card h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.card h3 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.card h3 a:hover {
+  color: var(--color-accent);
+}
+
+.card p {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+/* ── Tags ── */
+.tagrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
 .tag {
   display: inline-block;
-  background: orange;
-  color: #111;
-  padding: 0.2rem 0.5rem;
+  background: var(--color-tag-bg);
+  color: var(--color-tag-text);
+  padding: 0.2rem 0.6rem;
   border-radius: 4px;
-  margin-right: 0.3rem;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
-#puzzle-box {
-  margin: 2rem auto;
-  padding: 1rem;
-  max-width: 400px;
-  border: 2px solid orange;
-  border-radius: 8px;
-  background: #222;
-}
-input {
-  padding: 0.5rem;
-  margin: 0.5rem;
-}
+/* ── Buttons ── */
 button, .btn {
   display: inline-block;
-  padding: 0.5rem 1rem;
-  background: orange;
-  color: #111;
+  padding: 0.6rem 1.25rem;
+  background: var(--color-accent);
+  color: #ffffff;
   border: none;
-  border-radius: 5px;
+  border-radius: 6px;
   cursor: pointer;
   text-decoration: none;
   font-weight: 600;
-}
-button:hover, .btn:hover {
-  background: darkorange;
-}
-.btn.small {
-  padding: 0.3rem 0.75rem;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
+  transition: background 0.2s, transform 0.1s;
 }
 
+button:hover, .btn:hover {
+  background: var(--color-accent-hover);
+  transform: translateY(-1px);
+}
+
+.btn.small {
+  padding: 0.35rem 0.8rem;
+  font-size: 0.82rem;
+}
+
+/* ── Puzzle ── */
+#puzzle-box {
+  margin: 2rem auto;
+  padding: 1.5rem;
+  max-width: 420px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-card-bg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+input {
+  padding: 0.5rem 0.75rem;
+  margin: 0.5rem 0;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+input:focus {
+  outline: 2px solid var(--color-accent);
+  border-color: transparent;
+}
+
+/* ── Footer ── */
 .footer {
-  background: #222;
+  background: var(--color-bg-alt);
   text-align: center;
-  padding: 1rem;
-  border-top: 2px solid orange;
+  padding: 1.5rem;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-muted);
+  font-size: 0.875rem;
+}
+
+/* ── Blog list ── */
+.blog-list .grid {
+  margin-top: 0;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .site-header .container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .section h2 {
+    font-size: 1.4rem;
+  }
 }
