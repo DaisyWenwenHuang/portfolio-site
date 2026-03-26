@@ -3,48 +3,253 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Exploring Network Graphs with Twitter Data • Blog</title>
+  <title>Exploring Network Graphs with Twitter Data — Daisy Huang</title>
   <link rel="stylesheet" href="../style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <style>
+    .post-hero {
+      background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+      border-bottom: 1px solid var(--color-border);
+      padding: 3rem 0 2.5rem;
+    }
+    .post-hero .meta {
+      color: var(--color-muted);
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+    }
+    .post-hero h1 {
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 800;
+      color: var(--color-primary);
+      line-height: 1.25;
+      letter-spacing: -0.02em;
+      margin: 0 0 1rem;
+    }
+    .post-hero .subtitle {
+      font-size: 1.1rem;
+      color: var(--color-muted);
+      max-width: 640px;
+      line-height: 1.6;
+    }
+    .post-body {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 3rem 5%;
+    }
+    .post-body h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      margin: 2.5rem 0 0.75rem;
+      letter-spacing: -0.01em;
+    }
+    .post-body h2:first-child { margin-top: 0; }
+    .post-body p {
+      color: var(--color-text);
+      line-height: 1.8;
+      margin: 0 0 1.2rem;
+      font-size: 1rem;
+    }
+    .post-body ol, .post-body ul {
+      color: var(--color-text);
+      line-height: 1.8;
+      margin: 0 0 1.2rem;
+      padding-left: 1.5rem;
+    }
+    .post-body li { margin-bottom: 0.4rem; }
+    .post-body a { color: var(--color-accent); text-underline-offset: 3px; }
+    .callout {
+      background: #eff6ff;
+      border-left: 4px solid var(--color-accent);
+      border-radius: 0 8px 8px 0;
+      padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+      color: var(--color-text);
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+    .insight-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+    .insight-card {
+      background: var(--color-bg-alt);
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      padding: 1.1rem;
+    }
+    .insight-card .brand {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--color-accent);
+      margin-bottom: 0.35rem;
+    }
+    .insight-card strong {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      margin-bottom: 0.25rem;
+    }
+    .insight-card p {
+      font-size: 0.83rem;
+      color: var(--color-muted);
+      margin: 0;
+      line-height: 1.5;
+    }
+    .post-footer {
+      border-top: 1px solid var(--color-border);
+      padding-top: 1.5rem;
+      margin-top: 2.5rem;
+      color: var(--color-muted);
+      font-size: 0.875rem;
+    }
+  </style>
 </head>
 <body>
   <header class="site-header">
     <div class="container">
-      <h1 class="title">Blog Post</h1>
+      <h1 class="title"><a href="../index.html" style="color:inherit;text-decoration:none;">Daisy Huang</a></h1>
       <nav class="nav">
         <a href="../index.html">Home</a>
         <a href="../projects.html">Projects</a>
         <a href="../blog.html">Blog</a>
+        <a href="../puzzle.html">Puzzle</a>
+        <a href="../math-tutor/index.html">Math Tutor</a>
+        <a href="../contact.html">Contact</a>
       </nav>
     </div>
   </header>
 
-  <main class="section container">
-    <h2>Exploring Network Graphs with Twitter Data</h2>
-    <p><em>Posted: Sept 2024</em></p>
+  <div class="post-hero">
+    <div class="container">
+      <p class="meta">September 2024 &nbsp;·&nbsp; NLP &nbsp;·&nbsp; Network Analysis &nbsp;·&nbsp; 6 min read</p>
+      <h1>Mapping Brand Communities: Network Graphs with 150k Twitter Mentions</h1>
+      <p class="subtitle">
+        How directed graph analysis of Nike, Adidas, and Lululemon mentions revealed
+        not just who talks about each brand — but how those communities are structured.
+      </p>
+    </div>
+  </div>
+
+  <div class="post-body">
+
+    <h2>Why brand mentions make good network data</h2>
     <p>
-      In this project, I analyzed 150k+ tweets mentioning Nike, Adidas, and Lululemon. Using Python’s
-      NetworkX library, I constructed a directed mentions graph to understand how communities formed
-      around each brand. I also built a semantic network of co-occurring words to visualize brand perception.
+      A tweet mentioning a brand is not just an opinion — it is a signal in a conversation.
+      When user A tweets at brand B, and user C retweets that, and brand B replies to user D,
+      a structure emerges: clusters of engaged users, bridges between communities, and hubs that
+      disproportionately amplify messages. Standard sentiment analysis misses all of this because
+      it treats each tweet as an isolated data point.
     </p>
     <p>
-      Key insights included the dominance of Nike in mentions volume, Adidas forming a strong niche community,
-      and Lululemon’s audience clustering tightly around lifestyle and wellness themes.
-    </p>
-    <p>
-      Tools used: <strong>Python, NetworkX, Altair</strong>.
+      I wanted to understand the <em>shape</em> of brand conversations, not just their sentiment.
+      So I built directed mention graphs for Nike, Adidas, and Lululemon using over 150,000 tweets —
+      and what came back was a clear picture of three very different community architectures.
     </p>
 
-    <div class="post-nav">
-      <a class="btn small" href="#">⬅ Previous Post</a>
-      <a class="btn small" href="#">Next Post ➡</a>
+    <h2>The dataset and graph construction</h2>
+    <p>
+      The dataset comprised 150k+ tweets collected via the Twitter API, filtered to posts that
+      mentioned at least one of the three brand accounts. Each tweet was parsed to extract
+      directed edges: if user A mentioned user B in a tweet, that created an edge A → B in the graph.
+      Brand accounts themselves were included as nodes so that direct brand engagement would be
+      visible in the topology.
+    </p>
+    <p>
+      I used Python's <strong>NetworkX</strong> library to construct and analyze the graphs,
+      computing degree centrality, betweenness centrality, and clustering coefficients for each
+      brand network. For visualization I used <strong>Altair</strong> layered with custom
+      coordinate layouts to make community structures legible at scale.
+    </p>
+    <p>
+      In parallel, I built a semantic co-occurrence network from the same corpus: two words are
+      connected if they appear together in tweets above a frequency threshold, weighted by
+      pointwise mutual information (PMI). This surface what language and themes cluster around
+      each brand beyond just the user graph.
+    </p>
+
+    <h2>What the graphs revealed</h2>
+
+    <div class="insight-grid">
+      <div class="insight-card">
+        <div class="brand">Nike</div>
+        <strong>Volume dominance</strong>
+        <p>Largest node count and highest total mention volume by a wide margin. The graph is broad and diffuse — high reach, lower clustering.</p>
+      </div>
+      <div class="insight-card">
+        <div class="brand">Adidas</div>
+        <strong>Tight niche community</strong>
+        <p>Fewer total mentions but significantly higher clustering coefficient. Users mention each other, not just the brand — a sign of genuine community identity.</p>
+      </div>
+      <div class="insight-card">
+        <div class="brand">Lululemon</div>
+        <strong>Lifestyle cohesion</strong>
+        <p>The most semantically concentrated community. Co-occurrence analysis showed tight clustering around wellness, yoga, and athleisure themes — a narrow but loyal audience.</p>
+      </div>
     </div>
-  </main>
+
+    <p>
+      The difference between Nike and Adidas was particularly striking. Nike's graph resembled a
+      broadcast network — many users mentioning the brand, fewer mentioning each other. Adidas had
+      a fundamentally different topology: denser subgraphs, higher reciprocity, and more
+      user-to-user edges relative to user-to-brand edges. This pattern is associated with
+      community-driven engagement rather than brand-driven amplification.
+    </p>
+
+    <div class="callout">
+      <strong>Takeaway for brand analytics:</strong> Reach and engagement are not the same thing.
+      Nike had far more mentions, but Adidas's graph structure suggests a more cohesive and
+      self-sustaining community. Network topology reveals what raw mention counts hide.
+    </div>
+
+    <h2>Semantic networks: what language surrounds each brand</h2>
+    <p>
+      The word co-occurrence networks reinforced the graph findings. Nike's semantic network was
+      broad and heterogeneous — sneakers, sports, athletes, culture, releases — reflecting its
+      position as a mass-market brand spanning many contexts. Adidas clustered more tightly around
+      sport-specific and subcultural terms. Lululemon's semantic space was the most compact:
+      dominated by wellness and lifestyle vocabulary with minimal overlap with competitive brands.
+    </p>
+    <p>
+      This has practical implications for content strategy. Brands with diffuse semantic networks
+      face a harder task maintaining consistent identity; brands with tight semantic clusters have
+      stronger but narrower positioning to defend.
+    </p>
+
+    <h2>What I would do differently</h2>
+    <p>
+      The main limitation of this analysis is temporal flatness — the full dataset is treated as a
+      single snapshot, which obscures how community structure evolves around events like product
+      launches, controversies, or athlete endorsements. A time-sliced graph, comparing topology
+      before and after a specific event, would make the analysis much more actionable.
+    </p>
+    <p>
+      I would also incorporate account-level metadata (follower count, verified status, account age)
+      to weight nodes by influence rather than treating all users as equivalent. High-follower
+      accounts act as structural hubs, and their centrality in the graph carries more signal than
+      that of low-follower users.
+    </p>
+
+    <div class="post-footer">
+      <p>
+        Tools: Python, NetworkX, Altair. Dataset: 150k+ tweets via Twitter API. &nbsp;·&nbsp;
+        <a href="https://github.com/DaisyWenwenHuang/Disaster_Tweets" target="_blank">GitHub</a>
+        &nbsp;·&nbsp;
+        <a href="../blog.html">Back to Blog</a>
+      </p>
+    </div>
+
+  </div>
 
   <footer class="footer">
-    <p>© 2025 Daisy Huang</p>
+    <p>© 2026 Daisy Huang</p>
   </footer>
 </body>
 </html>

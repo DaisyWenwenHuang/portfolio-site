@@ -2,108 +2,252 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>When Snow Data Gets Buried — A Critique of Whistler’s Snow History Visualization</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>When Snow Data Gets Buried — Daisy Huang</title>
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
   <style>
-    :root{
-      --bg:#0f1722;
-      --card:#0b1220;
-      --muted:#9aa6b2;
-      --accent:#7dd3fc; /* icy accent */
-      --good:#34d399; /* green for positive */
-      --warn:#fb923c; /* orange for caution */
-      --white:#f8fafc;
-      --max-width:900px;
-      --radius:10px;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    .post-hero {
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      border-bottom: 1px solid var(--color-border);
+      padding: 3rem 0 2.5rem;
     }
-    html,body{height:100%;margin:0;background:linear-gradient(180deg,#071022 0%, #081426 100%);color:var(--white)}
-    .wrap{max-width:var(--max-width);margin:48px auto;padding:28px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:var(--radius);box-shadow:0 8px 40px rgba(2,6,23,0.7)}
-    header{display:flex;align-items:center;gap:16px}
-    .logo{width:64px;height:64px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#60a5fa);display:flex;align-items:center;justify-content:center;font-weight:700;color:#04202a}
-    h1{font-size:24px;margin:0 0 6px}
-    .byline{color:var(--muted);font-size:14px;margin-bottom:18px}
-    article h2{color:var(--accent);margin-top:20px}
-    p{line-height:1.6;color:#dbe7ef}
-    .callout{background:linear-gradient(90deg, rgba(125,211,252,0.06), rgba(52,211,153,0.03));padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.02);margin:16px 0}
-    .examples{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
-    .swatch{padding:12px;border-radius:8px;background:var(--card);border:1px solid rgba(255,255,255,0.02)}
-    .swatch .row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-    .color{width:36px;height:24px;border-radius:4px;border:1px solid rgba(255,255,255,0.06)}
-    footer{margin-top:28px;color:var(--muted);font-size:13px;border-top:1px dashed rgba(255,255,255,0.03);padding-top:12px}
-    a{color:var(--accent)}
-    pre{background:#06101a;padding:12px;border-radius:8px;overflow:auto;color:#cfe
-}
-    @media (max-width:640px){.examples{grid-template-columns:1fr}}
+    .post-hero .meta {
+      color: var(--color-muted);
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+    }
+    .post-hero h1 {
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 800;
+      color: var(--color-primary);
+      line-height: 1.25;
+      letter-spacing: -0.02em;
+      margin: 0 0 1rem;
+    }
+    .post-hero .subtitle {
+      font-size: 1.1rem;
+      color: var(--color-muted);
+      max-width: 640px;
+      line-height: 1.6;
+    }
+    .post-body {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 3rem 5%;
+    }
+    .post-body h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      margin: 2.5rem 0 0.75rem;
+      letter-spacing: -0.01em;
+    }
+    .post-body h2:first-child { margin-top: 0; }
+    .post-body p {
+      color: var(--color-text);
+      line-height: 1.8;
+      margin: 0 0 1.2rem;
+      font-size: 1rem;
+    }
+    .post-body ol, .post-body ul {
+      color: var(--color-text);
+      line-height: 1.8;
+      margin: 0 0 1.2rem;
+      padding-left: 1.5rem;
+    }
+    .post-body li { margin-bottom: 0.4rem; }
+    .post-body a { color: var(--color-accent); text-underline-offset: 3px; }
+    .callout {
+      background: #eff6ff;
+      border-left: 4px solid var(--color-accent);
+      border-radius: 0 8px 8px 0;
+      padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+      color: var(--color-text);
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+    .palette-item {
+      background: var(--color-bg-alt);
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+    .swatch {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      flex-shrink: 0;
+      border: 1px solid var(--color-border);
+    }
+    .palette-item strong {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: var(--color-primary);
+    }
+    .palette-item span {
+      font-size: 0.8rem;
+      color: var(--color-muted);
+    }
+    .post-footer {
+      border-top: 1px solid var(--color-border);
+      padding-top: 1.5rem;
+      margin-top: 2.5rem;
+      color: var(--color-muted);
+      font-size: 0.875rem;
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div class="logo">SN</div>
-      <div>
-        <h1>When Snow Data Gets Buried: A Critique of Whistler’s Snow History Visualization</h1>
-        <div class="byline">By a snowboarder &amp; data-visualization practitioner — I visit Whistler every year and love clean charts.</div>
-      </div>
-    </header>
+  <header class="site-header">
+    <div class="container">
+      <h1 class="title"><a href="../index.html" style="color:inherit;text-decoration:none;">Daisy Huang</a></h1>
+      <nav class="nav">
+        <a href="../index.html">Home</a>
+        <a href="../projects.html">Projects</a>
+        <a href="../blog.html">Blog</a>
+        <a href="../puzzle.html">Puzzle</a>
+        <a href="../math-tutor/index.html">Math Tutor</a>
+        <a href="../contact.html">Contact</a>
+      </nav>
+    </div>
+  </header>
 
-    <article>
-      <p>Every year I try to lock in lodging early for Whistler to catch lower prices — but the question that always matters is the same: <strong>will there be enough snow for my trip?</strong> I rely on historical snow data to decide. Recently I visited SNO’s Whistler snow history page and while the underlying data looks useful, the visualization itself makes the story harder to read than it needs to be. This post focuses specifically on <strong>color choice</strong> — a seemingly small design decision that has outsized effects on clarity and trust.</p>
-
-      <h2>The palette problem</h2>
-      <p>The SNO charts attempt to show multiple measures — snowfall, base depth, averages — often within the same plot. The visuals use several shades of the same hue (blue), which creates three problems:</p>
-      <ol>
-        <li><strong>Low distinction:</strong> similar blues for different measures force viewers to rely on legends or hover states instead of perceiving the data at a glance.</li>
-        <li><strong>Poor contrast:</strong> thin lines and light bars against a pale background reduce legibility, especially on mobile or in bright daylight (which, ironically, is when many skiers check reports).</li>
-        <li><strong>Accessibility risks:</strong> people with color-vision deficiencies will struggle to separate related shades. Around 8% of men are color-deficient, so this isn’t a niche concern.</li>
-      </ol>
-
-      <div class="callout">
-        <strong>Reminder:</strong> color is not decoration — it encodes meaning. When similar colors represent different metrics, the visual encoding breaks down.
-      </div>
-
-      <h2>How better color choices could help</h2>
-      <p>Here’s a simple, practical palette approach that improves clarity while keeping a cool, ‘snowy’ aesthetic:</p>
-      <div class="examples">
-        <div class="swatch">
-          <div class="row"><div class="color" style="background:linear-gradient(180deg,#0ea5e9,#60a5fa)"></div><div><strong>Base depth</strong><div style="color:var(--muted);font-size:13px">Deep blue — anchors the plot as the long-term metric</div></div></div>
-          <div class="row"><div class="color" style="background:#f8fafc"></div><div><strong>New snowfall</strong><div style="color:var(--muted);font-size:13px">White/very light gray — evokes fresh snow and separates from the base</div></div></div>
-          <div class="row"><div class="color" style="background:#fb923c"></div><div><strong>Seasonal averages / anomalies</strong><div style="color:var(--muted);font-size:13px">Contrasting warm color — draws attention to deviations</div></div></div>
-        </div>
-
-        <div class="swatch">
-          <div style="font-size:13px;color:var(--muted)"><strong>Accessibility tips</strong></div>
-          <ul style="margin:8px 0 0 18px;color:#dbe7ef;line-height:1.6">
-            <li>Use high-contrast pairings for adjacent layers (e.g., dark blue + white).</li>
-            <li>Maintain consistent mapping across views (snowfall = same color everywhere).</li>
-            <li>Add non-color encodings (patterned bars, different line styles) for when color alone is ambiguous.</li>
-          </ul>
-        </div>
-      </div>
-
-      <h2>Concrete examples (what to change right now)</h2>
-      <p>If you’re updating the SNO Whistler page, here are three targeted edits that will improve comprehension quickly:</p>
-      <ol>
-        <li><strong>Assign distinct hues</strong> to core metrics: deep blue for base, white/light-gray for new snowfall, and an accent (orange or teal) for averages/anomalies.</li>
-        <li><strong>Increase stroke width and marker sizes</strong> for line charts so that overlapping series remain legible at small sizes.</li>
-        <li><strong>Include accessible legends and textual summaries</strong> (e.g., a short sentence: “By Dec 4, median base depth is X cm — recent decades show Y trend”).</li>
-      </ol>
-
-      <h2>Why this matters</h2>
-      <p>People don’t consult snow-history pages for aesthetics — they consult them to make travel decisions that cost real money. A visualization that hides distinctions with near-identical hues isn’t neutral: it increases uncertainty and forces additional work on the user (cross-checking other sources, squinting, or misreading trends).</p>
-
-      <div class="callout">As a frequent Whistler visitor and someone who love building charts , I want these sites to earn our trust. Strong, accessible color choices are low-effort, high-impact changes.</div>
-
-      <footer>
-        Source: I reviewed the SNO Whistler snow history page and wrote this critique focusing on color and clarity. If you’d like, I can produce a <a href="#redesign">redesigned mockup</a> of one of the site’s charts — complete with an accessible palette and annotated notes for implementation.
-      </footer>
-    </article>
-
-    <!-- Optional: a small redesign sample (commented out) -->
-    <script>
-      // For a blog post, you might embed an interactive demo here (e.g., D3 or Chart.js)
-      // Example: render a small static SVG showing how the palette separates series.
-    </script>
+  <div class="post-hero">
+    <div class="container">
+      <p class="meta">September 2024 &nbsp;·&nbsp; Data Visualization &nbsp;·&nbsp; 5 min read</p>
+      <h1>When Snow Data Gets Buried: A Critique of Whistler's Snow History Visualization</h1>
+      <p class="subtitle">
+        Every year I check historical snow data before booking my Whistler trip. The data is there —
+        but the visualization makes it harder to read than it should be. Here's what I'd change, and why color is the culprit.
+      </p>
+    </div>
   </div>
+
+  <div class="post-body">
+
+    <h2>The question I ask every winter</h2>
+    <p>
+      Every year I try to lock in lodging early for Whistler to catch lower prices — but the question
+      that always drives the decision is the same: <strong>will there be enough snow for my trip?</strong>
+      Historical snow data is the most reliable signal I have. So I went to SNO's Whistler snow history
+      page, and while the underlying data is genuinely useful, the visualization makes the story
+      harder to read than it needs to be.
+    </p>
+    <p>
+      This post is a focused critique of one dimension: <strong>color choice</strong>. It's a
+      seemingly small design decision, but it has an outsized effect on clarity and trust —
+      especially for a visualization that people rely on to make real travel decisions.
+    </p>
+
+    <h2>The palette problem</h2>
+    <p>
+      The SNO charts attempt to show multiple measures — snowfall, base depth, historical averages —
+      often within the same plot. The visuals lean heavily on several shades of the same hue (blue),
+      which creates three compounding problems:
+    </p>
+    <ol>
+      <li><strong>Low distinction:</strong> similar blues for different measures force viewers to rely
+      on legends or hover states rather than perceiving the data at a glance. The chart's job is to
+      make comparisons effortless; a monochromatic palette does the opposite.</li>
+      <li><strong>Poor contrast:</strong> thin lines and light-colored bars against a pale background
+      reduce legibility, particularly on mobile screens or in bright daylight — which is, ironically,
+      when most skiers are checking snow reports.</li>
+      <li><strong>Accessibility gaps:</strong> approximately 8% of men have some form of color-vision
+      deficiency. Distinguishing similar blues is one of the hardest tasks for those viewers.
+      Relying on hue alone to encode different metrics excludes a meaningful share of the audience.</li>
+    </ol>
+
+    <div class="callout">
+      Color is not decoration — it encodes meaning. When similar colors are used to represent
+      different metrics, the visual encoding breaks down and the reader has to do extra cognitive
+      work to reconstruct what the designer intended.
+    </div>
+
+    <h2>A cleaner palette approach</h2>
+    <p>
+      Here is a straightforward palette that improves clarity while keeping a cool, wintry aesthetic:
+    </p>
+
+    <div class="palette-grid">
+      <div class="palette-item">
+        <div class="swatch" style="background: linear-gradient(180deg, #0ea5e9, #2563eb);"></div>
+        <div>
+          <strong>Base depth</strong>
+          <span>Deep blue — anchors the plot as the primary long-term metric</span>
+        </div>
+      </div>
+      <div class="palette-item">
+        <div class="swatch" style="background: #e2e8f0; border: 1px solid #cbd5e1;"></div>
+        <div>
+          <strong>New snowfall</strong>
+          <span>Light gray-white — evokes fresh snow, clearly separates from base</span>
+        </div>
+      </div>
+      <div class="palette-item">
+        <div class="swatch" style="background: #f97316;"></div>
+        <div>
+          <strong>Seasonal averages / anomalies</strong>
+          <span>Warm accent — draws the eye to deviations and historical context</span>
+        </div>
+      </div>
+    </div>
+
+    <h2>Three targeted edits with the highest impact</h2>
+    <p>
+      If I were updating the SNO Whistler page, I would start with these three changes — they
+      require minimal effort but materially improve comprehension:
+    </p>
+    <ol>
+      <li><strong>Assign distinct hues to core metrics.</strong> Deep blue for base depth, white/light-gray
+      for new snowfall, and a warm accent for historical averages and anomalies. One metric, one color,
+      applied consistently across every chart on the page.</li>
+      <li><strong>Increase stroke width and marker size.</strong> Thin lines in line charts become
+      nearly invisible when two series overlap. A minimum 2px stroke width and slightly larger
+      data-point markers maintain legibility at small viewport sizes.</li>
+      <li><strong>Add short textual summaries.</strong> A single sentence beneath each chart —
+      "By December 4, median base depth is X cm; recent decades trend Y" — dramatically reduces
+      the cognitive load for users who just want a quick answer.</li>
+    </ol>
+
+    <h2>Why this matters beyond aesthetics</h2>
+    <p>
+      People do not consult snow-history pages for aesthetics — they consult them to make travel
+      decisions that involve real money: flights, lodging, lift passes. A visualization that hides
+      distinctions with near-identical hues is not neutral. It increases uncertainty, forces
+      cross-referencing with other sources, and erodes confidence in the data itself.
+    </p>
+    <p>
+      Strong, accessible color choices are low-effort, high-impact improvements. They cost nothing
+      to implement in a chart library and immediately increase how much a viewer can trust what
+      they're reading. For a tool that skiers and snowboarders rely on every season, that trust
+      is worth designing for.
+    </p>
+
+    <div class="post-footer">
+      <p>
+        Data source: SNO Whistler snow history page. &nbsp;·&nbsp;
+        <a href="../blog.html">Back to Blog</a>
+      </p>
+    </div>
+
+  </div>
+
+  <footer class="footer">
+    <p>© 2026 Daisy Huang</p>
+  </footer>
 </body>
 </html>

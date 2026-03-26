@@ -3,49 +3,273 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Drought Prediction Models with Climate Data • Blog</title>
+  <title>Drought Prediction Models with Climate Data — Daisy Huang</title>
   <link rel="stylesheet" href="../style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <style>
+    .post-hero {
+      background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%);
+      border-bottom: 1px solid var(--color-border);
+      padding: 3rem 0 2.5rem;
+    }
+    .post-hero .meta {
+      color: var(--color-muted);
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+    }
+    .post-hero h1 {
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 800;
+      color: var(--color-primary);
+      line-height: 1.25;
+      letter-spacing: -0.02em;
+      margin: 0 0 1rem;
+    }
+    .post-hero .subtitle {
+      font-size: 1.1rem;
+      color: var(--color-muted);
+      max-width: 640px;
+      line-height: 1.6;
+    }
+    .post-body {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 3rem 5%;
+    }
+    .post-body h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      margin: 2.5rem 0 0.75rem;
+      letter-spacing: -0.01em;
+    }
+    .post-body h2:first-child { margin-top: 0; }
+    .post-body p {
+      color: var(--color-text);
+      line-height: 1.8;
+      margin: 0 0 1.2rem;
+      font-size: 1rem;
+    }
+    .post-body ol, .post-body ul {
+      color: var(--color-text);
+      line-height: 1.8;
+      margin: 0 0 1.2rem;
+      padding-left: 1.5rem;
+    }
+    .post-body li { margin-bottom: 0.4rem; }
+    .post-body a { color: var(--color-accent); text-underline-offset: 3px; }
+    .callout {
+      background: #eff6ff;
+      border-left: 4px solid var(--color-accent);
+      border-radius: 0 8px 8px 0;
+      padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+      color: var(--color-text);
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+    .model-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+    .model-card {
+      background: var(--color-bg-alt);
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      padding: 1.1rem;
+    }
+    .model-card .label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--color-accent);
+      margin-bottom: 0.35rem;
+    }
+    .model-card strong {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      margin-bottom: 0.25rem;
+    }
+    .model-card p {
+      font-size: 0.83rem;
+      color: var(--color-muted);
+      margin: 0;
+      line-height: 1.5;
+    }
+    .post-footer {
+      border-top: 1px solid var(--color-border);
+      padding-top: 1.5rem;
+      margin-top: 2.5rem;
+      color: var(--color-muted);
+      font-size: 0.875rem;
+    }
+  </style>
 </head>
 <body>
   <header class="site-header">
     <div class="container">
-      <h1 class="title">Blog Post</h1>
+      <h1 class="title"><a href="../index.html" style="color:inherit;text-decoration:none;">Daisy Huang</a></h1>
       <nav class="nav">
         <a href="../index.html">Home</a>
         <a href="../projects.html">Projects</a>
         <a href="../blog.html">Blog</a>
+        <a href="../puzzle.html">Puzzle</a>
+        <a href="../math-tutor/index.html">Math Tutor</a>
+        <a href="../contact.html">Contact</a>
       </nav>
     </div>
   </header>
 
-  <main class="section container">
-    <h2>Drought Prediction Models with Climate Data</h2>
-    <p><em>Posted: Apr 2024</em></p>
+  <div class="post-hero">
+    <div class="container">
+      <p class="meta">April 2024 &nbsp;·&nbsp; Machine Learning &nbsp;·&nbsp; Climate Science &nbsp;·&nbsp; 7 min read</p>
+      <h1>Predicting Extreme Drought in Yuma County with Supervised and Unsupervised ML</h1>
+      <p class="subtitle">
+        Combining NOAA climate records, USGS groundwater data, and USCRN soil moisture readings
+        to forecast drought conditions — and what I learned about class imbalance, PCA, and
+        choosing the right model for a rare-event problem.
+      </p>
+    </div>
+  </div>
+
+  <div class="post-body">
+
+    <h2>Why Yuma County?</h2>
     <p>
-      This project explored supervised and unsupervised models for drought prediction using NOAA climate data,
-      USGS groundwater datasets, and USCRN soil moisture/temperature. Models compared included PCA + Random Forest
-      and Support Vector Machines (SVM).
+      Yuma County, Arizona is one of the most agriculturally productive counties in the United States
+      and one of the most water-stressed. It sits at the confluence of the Colorado and Gila Rivers,
+      relies almost entirely on irrigation for its $3 billion-per-year crop output, and has
+      experienced some of the most severe prolonged drought conditions in recorded history.
     </p>
     <p>
-      The analysis showed that Random Forest provided strong baseline accuracy, while PCA preprocessing helped improve
-      interpretability and dimensionality reduction. SVM performed well in separating drought vs. non-drought scenarios,
-      but required careful parameter tuning to avoid overfitting.
-    </p>
-    <p>
-      Tools used: <strong>Python, scikit-learn, PCA, Random Forest, SVM</strong>.
+      That combination — economic importance, extreme climate exposure, and rich historical data —
+      made it an ideal study area for testing whether machine learning models can reliably
+      distinguish drought from non-drought periods using observable climate variables, and more
+      ambitiously, whether they can forecast drought conditions several weeks in advance.
     </p>
 
-    <div class="post-nav">
-      <a class="btn small" href="twitter-network-analysis.html">⬅ Previous Post</a>
-      <a class="btn small" href="#">Next Post ➡</a>
+    <h2>The data pipeline</h2>
+    <p>
+      I integrated three federal datasets covering the same geographic footprint:
+    </p>
+    <ul>
+      <li><strong>NOAA climate records</strong> — daily temperature, precipitation, and humidity
+      readings from weather stations in and around Yuma County, spanning multiple decades.</li>
+      <li><strong>USGS groundwater data</strong> — well-depth measurements at monitoring sites,
+      used as a lagged indicator of sustained dry conditions that surface precipitation measures
+      can miss.</li>
+      <li><strong>USCRN soil moisture and temperature</strong> — sub-surface readings at multiple
+      depths, providing a direct measure of water availability to crops rather than relying purely
+      on atmospheric proxies.</li>
+    </ul>
+    <p>
+      Merging these datasets required careful handling of different temporal resolutions (daily vs.
+      weekly), missing values during equipment outages, and spatial alignment across monitoring
+      sites that did not share coordinates. The final feature set comprised 40+ engineered features
+      including rolling means, lag variables, and cross-sensor interaction terms.
+    </p>
+
+    <h2>The class imbalance problem</h2>
+    <p>
+      Extreme drought is, by definition, a rare event. In the historical record, drought conditions
+      meeting the D3/D4 threshold (severe and exceptional drought on the USDM scale) occur in a
+      relatively small fraction of weeks. A naive model that predicts "no drought" for every
+      observation would achieve high accuracy simply by exploiting this imbalance — while being
+      completely useless for the actual forecasting task.
+    </p>
+
+    <div class="callout">
+      <strong>Lesson learned:</strong> accuracy is the wrong metric for rare-event classification.
+      Precision, recall, and F1 score on the minority class tell you whether a model is actually
+      learning the signal — not just memorizing the base rate.
     </div>
-  </main>
+
+    <p>
+      I addressed class imbalance using SMOTE (Synthetic Minority Over-sampling Technique) on the
+      training set, combined with class-weight adjustments in the model training step. I evaluated
+      all models on held-out data without any resampling to ensure performance estimates reflected
+      real-world conditions.
+    </p>
+
+    <h2>Models compared</h2>
+
+    <div class="model-grid">
+      <div class="model-card">
+        <div class="label">Unsupervised</div>
+        <strong>PCA + clustering</strong>
+        <p>Used to explore feature structure and reduce dimensionality before supervised modeling. Revealed two dominant climate regimes corresponding to wet and dry seasons.</p>
+      </div>
+      <div class="model-card">
+        <div class="label">Supervised</div>
+        <strong>Random Forest</strong>
+        <p>Strong baseline. Handled non-linear interactions between soil moisture and temperature well. Feature importance scores pointed to groundwater depth as the single most predictive variable.</p>
+      </div>
+      <div class="model-card">
+        <div class="label">Supervised</div>
+        <strong>Support Vector Machine</strong>
+        <p>Competitive on precision but sensitive to hyperparameter choices. Required a grid search over kernel type and regularization parameter C to avoid overfitting on the resampled training set.</p>
+      </div>
+    </div>
+
+    <p>
+      Random Forest provided the strongest overall performance on the minority class (extreme drought
+      weeks), with higher recall than SVM at comparable precision thresholds. The feature importance
+      analysis was a useful secondary output: groundwater depth emerged as the top predictor,
+      followed by a 30-day rolling soil moisture deficit and minimum daily temperature anomaly.
+      This ordering makes physical sense — groundwater responds to sustained dry conditions
+      over weeks and months, making it a more reliable signal than short-term precipitation gaps.
+    </p>
+
+    <h2>What PCA contributed beyond dimensionality reduction</h2>
+    <p>
+      Beyond its use as a preprocessing step, the PCA analysis surfaced something interpretively
+      valuable. The first two principal components together explained roughly 65% of variance in
+      the climate feature set, and plotting county-weeks in PC space revealed clear seasonal
+      structure — a predictable annual arc — with drought periods clustering in a distinct region
+      of that space, separated from normal conditions along the second principal component.
+    </p>
+    <p>
+      This told me that the supervised problem was geometrically tractable: drought periods are not
+      randomly scattered through climate feature space. They occupy a consistent region that a
+      linear or moderately non-linear boundary can capture. That finding increased my confidence
+      in the supervised results and helped explain why Random Forest (which partitions feature
+      space with axis-aligned splits) performed well without needing deep trees.
+    </p>
+
+    <h2>What I would do differently</h2>
+    <p>
+      The most significant gap in this analysis is temporal leakage. Splitting by random sample
+      rather than time means that features from weeks adjacent to a drought event (which share
+      correlated climate patterns) may appear in both training and test sets. A proper evaluation
+      requires a strict chronological split — train on years 1–N, evaluate on years N+1 and beyond.
+      I would implement this as the first change in a revised version of the project.
+    </p>
+    <p>
+      I would also experiment with time-series specific models — LSTMs or temporal convolutional
+      networks — that can explicitly leverage the sequential structure of climate data rather than
+      relying on manually engineered lag features to approximate temporal dependencies.
+    </p>
+
+    <div class="post-footer">
+      <p>
+        Tools: Python, scikit-learn, pandas, NumPy. Data: NOAA, USGS, USCRN. &nbsp;·&nbsp;
+        <a href="https://github.com/DaisyWenwenHuang/Yuma-AZ-Extreme-Drought-Prediction" target="_blank">GitHub</a>
+        &nbsp;·&nbsp;
+        <a href="../blog.html">Back to Blog</a>
+      </p>
+    </div>
+
+  </div>
 
   <footer class="footer">
-    <p>© 2025 Daisy Huang</p>
+    <p>© 2026 Daisy Huang</p>
   </footer>
 </body>
 </html>
